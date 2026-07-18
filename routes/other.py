@@ -155,6 +155,28 @@ def update_enquiry_status(eid):
     return jsonify({"id": eid, "status": status})
 
 
+@enquiries_bp.route("/api/properties/<pid>/report", methods=["POST"])
+@authenticate
+def create_report(pid):
+    data = request.get_json() or {}
+    reason = (data.get("reason") or "").strip()
+    description = (data.get("description") or "").strip()
+
+    if not reason:
+        return jsonify({"error": "Reason is required"}), 422
+
+    with db() as conn:
+        if not conn.execute("SELECT id FROM properties WHERE id=?", (pid,)).fetchone():
+            return jsonify({"error": "Property not found"}), 404
+
+        rid = str(uuid.uuid4())
+        conn.execute(
+            "INSERT INTO reports (id, property_id, user_id, reason, description) VALUES (?,?,?,?,?)",
+            (rid, pid, g.user["id"], reason, description)
+        )
+    return jsonify({"message": "Report submitted successfully", "id": rid}), 201
+
+
 # ══════════════════════════════════════════════════════════════════
 #  GOVT HOSTELS   /api/govt-hostels
 # ══════════════════════════════════════════════════════════════════
@@ -540,3 +562,17 @@ def admin_delete_review(rid):
     with db() as conn:
         conn.execute("DELETE FROM reviews WHERE id=?", (rid,))
     return jsonify({"message": "Review deleted"})
+
+
+@admin_bp.route("/reports", methods=["GET"])
+@require_admin
+def admin_reports():
+    with db() as conn:
+        rows = rows_to_list(conn.execute(
+            """SELECT r.*, p.name as property_name, u.name as user_name, u.email as user_email
+               FROM reports r
+               JOIN properties p ON p.id = r.property_id
+               JOIN users u ON u.id = r.user_id
+               ORDER BY r.created_at DESC"""
+        ).fetchall())
+    return jsonify(rows)

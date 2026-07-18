@@ -605,7 +605,7 @@
 
   /* ══════════════ TOAST ══════════════ */
   .toast {
-    position: fixed; bottom: 2rem; right: 2rem; z-index: 999;
+    position: fixed; bottom: 2rem; right: 2rem; z-index: 3000;
     background: var(--bg2); border: 1px solid var(--border2);
     border-radius: var(--radius);
     padding: 12px 20px;
@@ -623,7 +623,7 @@
 
   /* ══════════════ MODAL ══════════════ */
   .modal-overlay {
-    position: fixed; inset: 0; z-index: 200;
+    position: fixed; inset: 0; z-index: 2000;
     background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
     display: flex; align-items: center; justify-content: center;
     opacity: 0; pointer-events: none; transition: opacity 0.2s;
@@ -680,7 +680,7 @@
 
   @media (max-width: 900px) {
     .hero { grid-template-columns: 1fr; }
-    .hero-right { display: none; }
+    .hero-right { display: block; height: 350px; border-top: 1px solid var(--border); }
     .hero-left { padding: 3rem 1.5rem; }
     .explore-layout { grid-template-columns: 1fr; }
     .filters-panel { display: none; }
@@ -719,6 +719,11 @@
     0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.7); }
     70% { box-shadow: 0 0 0 10px rgba(14, 165, 233, 0); }
     100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+  }
+  /* Ensure select options are clearly readable on all OS/browsers in dark mode */
+  select.search-input option, select.sort-select option, select.form-input option {
+    background-color: var(--surface) !important;
+    color: var(--text) !important;
   }
 </style>
 </head>
@@ -1102,36 +1107,106 @@
 </div>
 
 <div class="modal-overlay" id="listModal">
-  <div class="modal">
+  <div class="modal" style="max-width: 500px; max-height: 85vh; overflow-y: auto;">
     <div class="modal-title">List Your Property</div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">Property Name</label>
-        <input class="form-input" placeholder="e.g., Sharma Boys PG">
+    <form id="listPropertyForm" onsubmit="submitListing(event)">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Property Name</label>
+          <input class="form-input" id="list-name" required placeholder="e.g., Sharma Boys PG">
+        </div>
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label">Type</label>
+          <select class="form-input" id="list-type" style="cursor:pointer">
+            <option value="PG">PG</option>
+            <option value="Private Hostel">Private Hostel</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label">Gender Allowed</label>
+          <select class="form-input" id="list-gender" style="cursor:pointer">
+            <option value="Men">Men</option>
+            <option value="Women">Women</option>
+            <option value="Co-ed">Co-ed</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label">Area / Locality</label>
+          <input class="form-input" id="list-area" required placeholder="e.g., Koramangala">
+        </div>
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label">Full Address</label>
+          <input class="form-input" id="list-address" required placeholder="e.g., #12, 4th Cross, Koramangala 5th Block">
+        </div>
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label">Description</label>
+          <textarea class="form-input" id="list-description" required placeholder="e.g., Spacious rooms with high-speed WiFi, homely meals..." rows="3"></textarea>
+        </div>
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label">Sharing Type</label>
+          <select class="form-input" id="list-sharing" style="cursor:pointer">
+            <option value="Single">Single Sharing</option>
+            <option value="Double">Double Sharing</option>
+            <option value="Triple">Triple Sharing</option>
+            <option value="Dorm">Dormitory</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label">Starting Rent (₹/month)</label>
+          <input class="form-input" type="number" id="list-price-min" required placeholder="e.g., 5000">
+        </div>
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label">Max Rent (₹/month)</label>
+          <input class="form-input" type="number" id="list-price-max" required placeholder="e.g., 10000">
+        </div>
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label">Amenities</label>
+          <div id="list-amenities-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px;">
+            <!-- Dynamic checkboxes populated here -->
+          </div>
+        </div>
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label">Property Photo</label>
+          <input type="file" class="form-input" id="list-photo" accept="image/*" style="cursor:pointer">
+          <div id="photo-preview-container" style="margin-top: 8px; display: none; text-align: center;">
+            <img id="list-photo-preview" src="" style="max-width: 100%; max-height: 150px; border-radius: var(--radius); border: 1px solid var(--border2);">
+          </div>
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Type</label>
-        <select class="form-input" style="cursor:pointer">
-          <option>PG</option><option>Private Hostel</option>
-        </select>
+      <div class="modal-actions" style="margin-top: 16px;">
+        <button class="btn-secondary" type="button" onclick="closeModal('listModal')">Cancel</button>
+        <button class="btn-primary" type="submit">Submit Listing</button>
       </div>
-      <div class="form-group">
-        <label class="form-label">Area / Locality</label>
-        <input class="form-input" placeholder="e.g., Koramangala 5th Block">
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="reportModal">
+  <div class="modal">
+    <div class="modal-title" style="color:var(--red);">Report Property</div>
+    <form id="reportForm" onsubmit="submitReport(event)">
+      <input type="hidden" id="report-property-id">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Reason for reporting</label>
+          <select class="form-input" id="report-reason" style="cursor:pointer">
+            <option value="scam">Scam / Fake Listing</option>
+            <option value="wrong_price">Incorrect Price / Rent</option>
+            <option value="inaccurate_location">Wrong Address / Location</option>
+            <option value="spam">Spam / Duplicate</option>
+            <option value="other">Other issue</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label">Description / Details</label>
+          <textarea class="form-input" id="report-details" required placeholder="Please provide details about what is wrong..." rows="3"></textarea>
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Starting Rent (₹/month)</label>
-        <input class="form-input" type="number" placeholder="5000">
+      <div class="modal-actions" style="margin-top: 16px;">
+        <button class="btn-secondary" type="button" onclick="closeModal('reportModal')">Cancel</button>
+        <button class="btn-primary" type="submit" style="background:var(--red); color:#fff; border:none;">Submit Report</button>
       </div>
-      <div class="form-group">
-        <label class="form-label">Your Phone Number</label>
-        <input class="form-input" placeholder="+91" type="tel">
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-secondary" onclick="closeModal('listModal')">Cancel</button>
-      <button class="btn-primary" onclick="submitListing()">Submit Listing</button>
-    </div>
+    </form>
   </div>
 </div>
 
@@ -1206,14 +1281,31 @@ let filters = { type:'All', gender:'All', area:'All', budget:25000, amenities:[]
 let govtFilter = 'All';
 let isListView = false;
 let savedItems = new Set();
+let dbAmenities = [];
 
 // ═══════════════ VIEWS ═══════════════
 function showView(name) {
+  if (name !== 'home') {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      showToast("Please login to view this content");
+      toggleAuthMode('login');
+      openModal('authModal');
+      return false;
+    }
+  }
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById('view-' + name).classList.add('active');
   if (name === 'explore') renderListings();
   if (name === 'govt') renderGovt();
   if (name === 'areas') renderAreas();
+  if (name === 'home') {
+    if (heroMapInstance) {
+      heroMapInstance.invalidateSize();
+    } else {
+      buildHeroMap();
+    }
+  }
   
   // Highlight active desktop nav button
   document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
@@ -1225,64 +1317,83 @@ function showView(name) {
   const idx = map[name];
   if (idx !== undefined) document.querySelectorAll('.mnav-btn')[idx]?.classList.add('active');
   window.scrollTo(0,0);
+  return true;
 }
 
 // ═══════════════ MAP ═══════════════
+let heroMapInstance = null;
+
 function buildHeroMap() {
-  const map = document.getElementById('heroMap');
-  if (!map) return;
-  const roads = [
-    { cls:'h major', top:20 }, { cls:'h', top:38 }, { cls:'h major', top:55 },
-    { cls:'h', top:70 }, { cls:'h major', top:85 },
-    { cls:'v major', left:15 }, { cls:'v', left:35 }, { cls:'v major', left:60 }, { cls:'v', left:80 },
-  ];
-  roads.forEach(r => {
-    const d = document.createElement('div');
-    d.className = 'map-road ' + r.cls;
-    if (r.top !== undefined) d.style.top = r.top + '%';
-    if (r.left !== undefined) d.style.left = r.left + '%';
-    map.appendChild(d);
-  });
-  const labels = [
-    { text:'Koramangala', top:'18%', left:'55%' },
-    { text:'Indiranagar', top:'12%', left:'72%' },
-    { text:'BTM Layout', top:'65%', left:'45%' },
-    { text:'Whitefield', top:'30%', left:'15%' },
-    { text:'HSR Layout', top:'75%', left:'62%' },
-  ];
-  labels.forEach(l => {
-    const d = document.createElement('div');
-    d.className = 'map-area-label';
-    d.style.top = l.top; d.style.left = l.left;
-    d.textContent = l.text;
-    map.appendChild(d);
-  });
-  const pins = [
-    { label:'₹7,500', top:'24%', left:'58%', cls:'' },
-    { label:'₹9,000', top:'18%', left:'75%', cls:'' },
-    { label:'₹6,000', top:'70%', left:'50%', cls:'' },
-    { label:'Govt Hostel', top:'35%', left:'25%', cls:'govt' },
-    { label:'₹11,000', top:'28%', left:'18%', cls:'' },
-    { label:'Women\'s PG', top:'42%', left:'68%', cls:'hostel' },
-    { label:'₹5,500', top:'72%', left:'38%', cls:'' },
-  ];
-  pins.forEach(p => {
-    const pin = document.createElement('div');
-    pin.className = 'map-pin';
-    pin.style.top = p.top; pin.style.left = p.left;
-    pin.innerHTML = `<div class="pin-bubble ${p.cls}">${p.label}</div>`;
-    pin.onclick = () => showView('explore');
-    map.appendChild(pin);
-  });
-  const ol = document.createElement('div');
-  ol.className = 'map-overlay';
-  ol.innerHTML = `<div class="map-legend">
-    <span class="legend-item"><span class="legend-dot" style="background:var(--accent)"></span>PG</span>
-    <span class="legend-item"><span class="legend-dot" style="background:var(--purple)"></span>Private Hostel</span>
-    <span class="legend-item"><span class="legend-dot" style="background:var(--teal)"></span>Govt Hostel</span>
-    <span style="margin-left:auto;font-size:12px;color:var(--text3)">Click pins to explore →</span>
-  </div>`;
-  map.appendChild(ol);
+  const mapEl = document.getElementById('heroMap');
+  if (!mapEl) return;
+
+  if (heroMapInstance) {
+    try {
+      heroMapInstance.remove();
+    } catch (e) {
+      console.warn("Error removing hero map:", e);
+    }
+    heroMapInstance = null;
+  }
+
+  // Wait a moment for layout to settle
+  setTimeout(() => {
+    if (!document.getElementById('heroMap')) return;
+    
+    heroMapInstance = L.map('heroMap', {
+      zoomControl: true,
+      scrollWheelZoom: false
+    }).setView([12.9716, 77.5946], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(heroMapInstance);
+
+    listings.forEach(l => {
+      if (l.lat && l.lng) {
+        const isGovt = l.type === 'Govt Hostel';
+        const isHostel = l.type === 'Private Hostel';
+        const bubbleColor = isGovt ? 'var(--teal)' : isHostel ? 'var(--purple)' : 'var(--accent)';
+
+        const markerHtml = `
+          <div style="
+            background: ${bubbleColor};
+            color: #fff;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 99px;
+            border: 1.5px solid #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            white-space: nowrap;
+            display: inline-block;
+            transform: translate(-50%, -100%);
+          ">
+            ${l.emoji} ₹${(l.price/1000).toFixed(1)}k
+          </div>
+        `;
+
+        const customIcon = L.divIcon({
+          html: markerHtml,
+          className: 'hero-map-marker',
+          iconSize: [60, 24],
+          iconAnchor: [30, 24]
+        });
+
+        L.marker([l.lat, l.lng], { icon: customIcon })
+          .addTo(heroMapInstance)
+          .bindPopup(`
+            <div style="font-family:'DM Sans',sans-serif; color:var(--text); min-width: 140px;">
+              <strong style="font-size:13px; display:block; margin-bottom:2px;">${l.name}</strong>
+              <span style="font-size:11px; color:var(--text2); display:block; margin-bottom:4px;">${l.area} · ${l.type}</span>
+              <strong style="color:var(--accent); font-size:12px; display:block; margin-bottom:6px;">₹${l.price.toLocaleString('en-IN')}/mo</strong>
+              <button onclick="showDetail(${l.id})" style="width:100%; padding:6px; font-size:10px; border-radius:6px; border:none; background:var(--accent); color:#fff; font-weight:600; cursor:pointer;">View Details</button>
+            </div>
+          `);
+      }
+    });
+  }, 200);
 }
 
 // ═══════════════ DETAIL MAP & DIRECTIONS (LEAFLET) ═══════════════
@@ -1575,7 +1686,7 @@ function toggleDistanceFilter(val, btn) {
 }
 
 function filterByArea(area) {
-  showView('explore');
+  if (!showView('explore')) return;
   filters.area = area;
   document.querySelectorAll('[data-group="area"]').forEach(b => {
     b.classList.toggle('active', b.dataset.val === area);
@@ -1584,7 +1695,7 @@ function filterByArea(area) {
 }
 
 function filterByType(type) {
-  showView('explore');
+  if (!showView('explore')) return;
   filters.type = type;
   document.querySelectorAll('[data-group="type"]').forEach(b => {
     b.classList.toggle('active', b.dataset.val === type);
@@ -1706,11 +1817,15 @@ function renderListings() {
       }
     }
 
+    const imgContent = (l.photoUrl && (l.photoUrl.startsWith('http') || l.photoUrl.startsWith('data:image')))
+      ? `<img src="${l.photoUrl}" style="width:100%; height:100%; object-fit:cover;">`
+      : `<div class="card-img-inner">${l.emoji}</div>`;
+
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
       <div class="card-img ${thumbClass}">
-        <div class="card-img-inner">${l.emoji}</div>
+        ${imgContent}
         <div class="card-badges">
           <span class="badge ${typeClass}">${l.type}</span>
           ${l.verified ? '<span class="badge badge-verified">✓ Verified</span>' : ''}
@@ -1792,7 +1907,9 @@ function showDetail(id) {
     <div class="detail-grid">
       <div class="detail-left">
         <div class="detail-gallery">
-          <div class="gallery-icon">${l.emoji}</div>
+          ${(l.photoUrl && (l.photoUrl.startsWith('http') || l.photoUrl.startsWith('data:image')))
+            ? `<img src="${l.photoUrl}" style="width:100%; height:100%; object-fit:cover;">`
+            : `<div class="gallery-icon">${l.emoji}</div>`}
           <div style="position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,.6);color:white;font-size:12px;padding:4px 12px;border-radius:99px;backdrop-filter:blur(8px)">📷 View Photos</div>
           <div style="position:absolute;top:12px;left:12px;display:flex;gap:6px">
             <span class="badge ${typeClass}">${l.type}</span>
@@ -1864,6 +1981,7 @@ function showDetail(id) {
             <button class="action-btn primary" onclick="openContactModal('${l.owner}')">📩 Send Enquiry</button>
             <button class="action-btn outline" onclick="handleOwnerAction('call the owner', 'Calling ${l.phone}...')">📞 Call ${l.phone}</button>
             <button class="action-btn whatsapp" onclick="handleOwnerAction('whatsapp the owner', 'Opening WhatsApp...')">💬 WhatsApp</button>
+            <button class="action-btn outline" style="color:var(--red); border-color:rgba(239,68,68,0.3); margin-top: 8px;" onclick="openReportModal('${l.id}')">🚩 Report Misinformation</button>
           </div>
         </div>
         <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;font-size:13px">
@@ -1873,7 +1991,7 @@ function showDetail(id) {
             <button class="action-btn outline" id="btnGetDirections" onclick="getDirections('${l.id}', ${l.lat}, ${l.lng})" style="padding:8px 12px;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif;">
               🚗 Get Directions from Live Location
             </button>
-            <button class="action-btn outline" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${l.lat},${l.lng}', '_blank')" style="padding:8px 12px;font-size:12px;font-weight:600;color:var(--text2);border-color:var(--border);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif;">
+            <button class="action-btn outline" onclick="window.open('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent('${l.name}, ${l.address}, Bengaluru'), '_blank')" style="padding:8px 12px;font-size:12px;font-weight:600;color:var(--text2);border-color:var(--border);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif;">
               🗺️ Open in Google Maps
             </button>
           </div>
@@ -1921,7 +2039,7 @@ function renderGovt() {
       </div>
       <div class="govt-card-footer">
         <span class="free-badge">${g.cost}</span>
-        <span class="apply-link" onclick="showToast('Opening govt portal...')">Apply Online →</span>
+        <span class="apply-link" onclick="event.stopPropagation(); handleApply('${g.apply}')">Apply Online →</span>
       </div>`;
     grid.appendChild(card);
   });
@@ -1952,9 +2070,25 @@ function renderAreas() {
 // ═══════════════ MODALS ═══════════════
 function openModal(id) {
   document.getElementById(id).classList.add('open');
+  const heroMapEl = document.getElementById('heroMap');
+  if (heroMapEl) {
+    heroMapEl.style.display = 'none';
+  }
 }
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
+  const openModals = document.querySelectorAll('.modal-overlay.open');
+  if (openModals.length === 0) {
+    const heroMapEl = document.getElementById('heroMap');
+    if (heroMapEl) {
+      heroMapEl.style.display = 'block';
+      setTimeout(() => {
+        if (heroMapInstance) {
+          heroMapInstance.invalidateSize();
+        }
+      }, 100);
+    }
+  }
 }
 function openContactModal(event, owner) {
   if (event) {
@@ -1979,6 +2113,21 @@ function handleOwnerAction(action, detailText) {
   }
   showToast(detailText);
 }
+function renderListModalAmenities() {
+  const container = document.getElementById('list-amenities-container');
+  if (!container) return;
+  if (!dbAmenities || !dbAmenities.length) {
+    container.innerHTML = `<span style="color:var(--text3)">Loading amenities...</span>`;
+    return;
+  }
+  container.innerHTML = dbAmenities.map(a => `
+    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+      <input type="checkbox" class="list-amenity-checkbox" value="${a.id}">
+      <span>${a.icon} ${a.name}</span>
+    </label>
+  `).join('');
+}
+
 async function handleListProperty() {
   const token = localStorage.getItem('accessToken');
   if (!token) {
@@ -1994,6 +2143,7 @@ async function handleListProperty() {
     if (res.ok) {
       const user = await res.json();
       if (user.role === 'owner' || user.role === 'admin') {
+        renderListModalAmenities();
         openModal('listModal');
       } else {
         showToast("Only users with 'Owner' role can list properties");
@@ -2006,19 +2156,176 @@ async function handleListProperty() {
     showToast("Server error. Please try again.");
   }
 }
+
+function handleApply(url) {
+  if (!url) {
+    showToast("Application link not available");
+    return;
+  }
+  let targetUrl = url.trim();
+  if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+    targetUrl = 'https://' + targetUrl;
+  }
+  showToast('Opening official portal...');
+  setTimeout(() => {
+    window.open(targetUrl, '_blank');
+  }, 800);
+}
+
 function sendContact() {
   closeModal('contactModal');
   showToast('Message sent! Owner will contact you soon.');
 }
-function submitListing() {
-  closeModal('listModal');
-  showToast('Listing submitted for review! We\'ll reach out in 24 hrs.');
+
+// Handle property photo selection and base64 preview
+let listPhotoBase64 = '';
+document.addEventListener('change', e => {
+  if (e.target && e.target.id === 'list-photo') {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        listPhotoBase64 = evt.target.result;
+        const preview = document.getElementById('list-photo-preview');
+        const container = document.getElementById('photo-preview-container');
+        if (preview && container) {
+          preview.src = listPhotoBase64;
+          container.style.display = 'block';
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+});
+
+async function submitListing(event) {
+  if (event) event.preventDefault();
+  
+  const token = localStorage.getItem('accessToken');
+  if (!token) {
+    showToast("Please login to list properties");
+    openModal('authModal');
+    return;
+  }
+  
+  const name = document.getElementById('list-name').value;
+  const type = document.getElementById('list-type').value;
+  const gender = document.getElementById('list-gender').value;
+  const area = document.getElementById('list-area').value;
+  const address = document.getElementById('list-address').value;
+  const description = document.getElementById('list-description').value;
+  const sharingType = document.getElementById('list-sharing').value;
+  const priceMin = parseInt(document.getElementById('list-price-min').value);
+  const priceMax = parseInt(document.getElementById('list-price-max').value);
+  
+  // Extract checked checkboxes for amenities
+  const checkedCheckboxes = document.querySelectorAll('.list-amenity-checkbox:checked');
+  const amenityIds = Array.from(checkedCheckboxes).map(cb => cb.value);
+  
+  const rooms = [
+    {
+      sharingType: sharingType,
+      price: priceMin,
+      count: 1
+    }
+  ];
+  
+  const areaCoords = AREA_COORDINATES[area] || { lat: 12.9716, lng: 77.5946 };
+  const lat = areaCoords.lat + (Math.random() - 0.5) * 0.01;
+  const lng = areaCoords.lng + (Math.random() - 0.5) * 0.01;
+  
+  const payload = {
+    name,
+    type,
+    gender,
+    area,
+    address,
+    description,
+    priceMin,
+    priceMax,
+    lat,
+    lng,
+    amenityIds,
+    rooms,
+    photoUrl: listPhotoBase64
+  };
+  
+  try {
+    const res = await fetch('/api/properties', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    if (res.ok) {
+      showToast('Property listed successfully!');
+      closeModal('listModal');
+      document.getElementById('listPropertyForm').reset();
+      listPhotoBase64 = '';
+      const previewContainer = document.getElementById('photo-preview-container');
+      if (previewContainer) previewContainer.style.display = 'none';
+      
+      await fetchLiveDBData();
+      showView('explore');
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Failed to submit listing');
+    }
+  } catch (err) {
+    console.error("Listing submission failed:", err);
+    showToast('Server connection failed. Please try again.');
+  }
 }
 document.addEventListener('click', e => {
   if (e.target.classList.contains('modal-overlay')) {
-    e.target.classList.remove('open');
+    closeModal(e.target.id);
   }
 });
+
+function openReportModal(pid) {
+  const token = localStorage.getItem('accessToken');
+  if (!token) {
+    showToast("Please login to report properties");
+    openModal('authModal');
+    return;
+  }
+  document.getElementById('report-property-id').value = pid;
+  openModal('reportModal');
+}
+
+async function submitReport(e) {
+  if (e) e.preventDefault();
+  const pid = document.getElementById('report-property-id').value;
+  const reason = document.getElementById('report-reason').value;
+  const description = document.getElementById('report-details').value;
+  const token = localStorage.getItem('accessToken');
+
+  try {
+    const res = await fetch(`/api/properties/${pid}/report`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ reason, description })
+    });
+
+    if (res.ok) {
+      showToast('Report submitted successfully. Thank you for keeping StayFinder safe.');
+      closeModal('reportModal');
+      document.getElementById('reportForm').reset();
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Failed to submit report');
+    }
+  } catch (err) {
+    console.error("Error submitting report:", err);
+    showToast("Server connection failed");
+  }
+}
 
 // ═══════════════ TOAST ═══════════════
 let toastTimer;
@@ -2033,6 +2340,16 @@ function showToast(msg) {
 // Fetch live data from SQLite backend API
 async function fetchLiveDBData() {
   try {
+    // Fetch amenities first to map IDs to names
+    try {
+      const resAmen = await fetch('/api/amenities');
+      if (resAmen.ok) {
+        dbAmenities = await resAmen.json();
+      }
+    } catch (e) {
+      console.warn("Could not fetch amenities:", e);
+    }
+
     // 1. Fetch properties
     const resProps = await fetch('/api/properties');
     if (resProps.ok) {
@@ -2061,7 +2378,8 @@ async function fetchLiveDBData() {
             rules: ['No smoking', 'Gate closes at 11 PM', 'ID card required'],
             emoji: p.type === 'PG' ? '🏠' : p.type === 'Govt Hostel' ? '🏛️' : '🏢',
             nearby: p.nearby_landmarks || '',
-            avail: p.available === 1
+            avail: p.available === 1,
+            photoUrl: p.photo_url || ''
           });
         });
         console.log("Loaded live properties from SQLite database.");
@@ -2120,6 +2438,7 @@ async function fetchLiveDBData() {
     renderListings();
     renderGovt();
     renderAreas();
+    buildHeroMap();
   }
 }
 

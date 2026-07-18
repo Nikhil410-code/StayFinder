@@ -206,8 +206,8 @@ def create_property():
             """INSERT INTO properties
                (id, owner_id, name, type, gender, area, address, city,
                 lat, lng, description, nearby_landmarks,
-                price_min, price_max, deposit, total_rooms, avail_rooms)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                price_min, price_max, deposit, total_rooms, avail_rooms, photo_url)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 pid, g.user["id"],
                 data["name"], data["type"], data["gender"],
@@ -219,6 +219,7 @@ def create_property():
                 int(data["deposit"]) if data.get("deposit") else None,
                 int(data.get("totalRooms", 1)),
                 int(data.get("totalRooms", 1)),
+                data.get("photoUrl"),
             ),
         )
 
@@ -263,6 +264,7 @@ def update_property(pid):
             "priceMin": "price_min", "priceMax": "price_max", "deposit": "deposit",
             "available": "available", "totalRooms": "total_rooms",
             "availRooms": "avail_rooms", "lat": "lat", "lng": "lng",
+            "photoUrl": "photo_url",
         }
         fields, vals = [], []
         for key, col in col_map.items():

@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS properties (
     featured         INTEGER NOT NULL DEFAULT 0,
     total_rooms      INTEGER NOT NULL DEFAULT 1,
     avail_rooms      INTEGER NOT NULL DEFAULT 1,
+    photo_url        TEXT,
     created_at       TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at       TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -184,6 +185,15 @@ CREATE TABLE IF NOT EXISTS area_guides (
     created_at        TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS reports (
+    id          TEXT PRIMARY KEY,
+    property_id TEXT NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+    user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    reason      TEXT NOT NULL,
+    description TEXT,
+    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS refresh_tokens (
     id         TEXT PRIMARY KEY,
     user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -198,4 +208,8 @@ def init_db():
     """Create all tables if they don't exist."""
     with db() as conn:
         conn.executescript(SCHEMA)
+        try:
+            conn.execute("ALTER TABLE properties ADD COLUMN photo_url TEXT")
+        except sqlite3.OperationalError:
+            pass # already exists
     print(f"[OK] Database initialised at {DB_PATH}")
