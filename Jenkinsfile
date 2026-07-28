@@ -16,7 +16,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 // 'SonarQubeServer' must match the system server name set in Jenkins Settings
-                withSonarQubeEnv('SonarQubeServer') { 
+                withSonarQubeEnv('sonarqube') { 
                     sh "${SONAR_SCANNER_HOME}/bin/sonar-scanner \
                         -Dsonar.projectKey=StayFinder \
                         -Dsonar.projectName=StayFinder \
