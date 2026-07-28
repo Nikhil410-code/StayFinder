@@ -3,11 +3,11 @@ pipeline {
 
     environment {
         // Docker variables
-        IMAGE_NAME = 'stayfinder-api'
+        IMAGE_NAME = 'nikhil1nt24cs410/stayfinder-api'
         IMAGE_TAG = "${BUILD_NUMBER}"
         
         // SonarQube Scanner Tool Name (Matches Jenkins Global Tool Configuration Name)
-        SONAR_SCANNER_HOME = tool 'SonarQubeScanner'
+        SONAR_SCANNER_HOME = tool 'sonar'
     }
 
     stages {
