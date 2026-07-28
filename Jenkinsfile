@@ -2,12 +2,9 @@ pipeline {
     agent any
 
     environment {
-        // AWS and Docker variables
-        AWS_ACCOUNT_ID = 'YOUR_AWS_ACCOUNT_ID'
-        AWS_DEFAULT_REGION = 'ap-south-1' // Change to your AWS region (e.g., Mumbai)
+        // Docker variables
         IMAGE_NAME = 'stayfinder-api'
         IMAGE_TAG = "${BUILD_NUMBER}"
-        ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
         
         // SonarQube Scanner Tool Name (Matches Jenkins Global Tool Configuration Name)
         SONAR_SCANNER_HOME = tool 'SonarQubeScanner'
@@ -50,65 +47,41 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
-                sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${ECR_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
-                sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${ECR_REGISTRY}/${IMAGE_NAME}:latest"
+                sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
             }
         }
 
-        stage('Login & Push to ECR') {
+        stage('Deploy Locally') {
             steps {
-                // Uses Jenkins AWS credentials binding ('aws-credentials-id' configured in Jenkins Credentials manager)
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials-id']]) {
-                    sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}"
-                    sh "docker push ${ECR_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
-                    sh "docker push ${ECR_REGISTRY}/${IMAGE_NAME}:latest"
-                }
-            }
-        }
-
-        stage('Deploy to AWS') {
-            steps {
-                // SSH deployment onto an EC2 server instance.
-                // Replace 'ec2-ssh-key' with the SSH credentials ID configured in Jenkins.
-                withCredentials([sshUserPrivateKey(credentialsId: 'ec2-ssh-key', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
-                    sh """
-                        ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${SSH_USER}@your-ec2-domain-or-ip "
-                            # Log in to ECR on remote EC2 server
-                            aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
-                            
-                            # Pull the latest container image
-                            docker pull ${ECR_REGISTRY}/${IMAGE_NAME}:latest
-                            
-                            # Stop and remove any current running containers with same name
-                            docker stop stayfinder-app || true
-                            docker rm stayfinder-app || true
-                            
-                            # Run container with SQLite DB volume mapping for persistence
-                            docker run -d --name stayfinder-app \
-                                -p 80:4000 \
-                                -v /var/lib/stayfinder-data:/app/data \
-                                --restart always \
-                                ${ECR_REGISTRY}/${IMAGE_NAME}:latest
-                        "
-                    """
-                }
+                // Deploys the built container locally on your Docker Desktop
+                sh """
+                    # Stop and remove any current running container with the same name
+                    docker stop stayfinder-app || true
+                    docker rm stayfinder-app || true
+                    
+                    # Run the container locally using a persistent Docker volume for the SQLite DB
+                    docker run -d --name stayfinder-app \
+                        -p 4000:4000 \
+                        -v stayfinder-data:/app/data \
+                        --restart always \
+                        ${IMAGE_NAME}:latest
+                """
             }
         }
     }
 
     post {
         always {
-            // Cleanup local builder images from Jenkins node to save disk space
+            // Clean up the specific build tag image, keeping 'latest' running
             sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
-            sh "docker rmi ${ECR_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} || true"
-            sh "docker rmi ${ECR_REGISTRY}/${IMAGE_NAME}:latest || true"
             cleanWs()
         }
         success {
-            echo "StayFinder CI/CD Pipeline executed successfully!"
+            echo "StayFinder Local CI/CD Pipeline executed successfully!"
+            echo "Your app is now running and live at: http://localhost:4000"
         }
         failure {
-            echo "StayFinder CI/CD Pipeline failed. Check console outputs."
+            echo "StayFinder Local CI/CD Pipeline failed. Check console outputs."
         }
     }
 }
