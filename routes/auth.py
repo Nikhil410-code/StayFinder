@@ -198,3 +198,73 @@ def change_password():
         conn.execute("DELETE FROM refresh_tokens WHERE user_id = ?", (g.user["id"],))
 
     return jsonify({"message": "Password changed successfully"})
+
+
+# ── POST /api/auth/forgot-password ────────────────────────────────
+@auth_bp.route("/forgot-password", methods=["POST"])
+def forgot_password():
+    data = request.get_json() or {}
+    email = data.get("email", "").strip().lower()
+    
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+        
+    with db() as conn:
+        row = conn.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+        if not row:
+            return jsonify({"error": "No user found with this email"}), 404
+            
+        token = uuid.uuid4().hex
+        expires = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+        
+        conn.execute(
+            "UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE email = ?",
+            (token, expires, email)
+        )
+        
+        print(f"\n[PASSWORD RESET] Email: {email} | Token: {token}\n")
+        
+        return jsonify({
+            "message": "Password reset token generated",
+            "resetToken": token,
+            "info": "In production, this would be sent to your email. Check server console logs or use this token to complete the reset."
+        })
+
+
+# ── POST /api/auth/reset-password ──────────────────────────────────
+@auth_bp.route("/reset-password", methods=["POST"])
+def reset_password():
+    data = request.get_json() or {}
+    token = data.get("token", "").strip()
+    new_pw = data.get("password", "")
+    
+    if not token:
+        return jsonify({"error": "Reset token is required"}), 400
+    if len(new_pw) < 8:
+        return jsonify({"error": "Password must be at least 8 characters"}), 422
+        
+    with db() as conn:
+        row = conn.execute(
+            "SELECT id, reset_token_expires FROM users WHERE reset_token = ?",
+            (token,)
+        ).fetchone()
+        
+        if not row:
+            return jsonify({"error": "Invalid or expired reset token"}), 400
+            
+        expires_str = row["reset_token_expires"]
+        # Handle timezone formatting cleanly
+        if expires_str.endswith("Z"):
+            expires_str = expires_str[:-1] + "+00:00"
+        expires = datetime.fromisoformat(expires_str)
+        
+        if datetime.now(timezone.utc) > expires:
+            return jsonify({"error": "Reset token has expired"}), 400
+            
+        conn.execute(
+            "UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL, updated_at = datetime('now') WHERE id = ?",
+            (hash_password(new_pw), row["id"])
+        )
+        conn.execute("DELETE FROM refresh_tokens WHERE user_id = ?", (row["id"],))
+        
+    return jsonify({"message": "Password reset successfully. You can now login with your new password."})

@@ -53,6 +53,8 @@ CREATE TABLE IF NOT EXISTS users (
     role         TEXT NOT NULL DEFAULT 'user',   -- user | owner | admin
     avatar       TEXT,
     verified     INTEGER NOT NULL DEFAULT 0,
+    reset_token  TEXT,
+    reset_token_expires TEXT,
     created_at   TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );

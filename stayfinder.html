@@ -725,6 +725,87 @@
     background-color: var(--surface) !important;
     color: var(--text) !important;
   }
+
+  /* ── DASHBOARD VIEW STYLING ── */
+  .dash-tabs button.nav-link {
+    background: none;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text2);
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+    border-bottom: 2px solid transparent;
+  }
+  .dash-tabs button.nav-link:hover {
+    color: var(--text);
+    background: var(--bg3);
+  }
+  .dash-tabs button.nav-link.active {
+    color: var(--accent) !important;
+    background: var(--accentbg) !important;
+    border-color: var(--accent) !important;
+  }
+  .dash-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-size: 14px;
+    color: var(--text2);
+  }
+  .dash-table th, .dash-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .dash-table th {
+    font-weight: 600;
+    color: var(--text);
+    background: var(--bg2);
+  }
+  .dash-table tbody tr:hover {
+    background: rgba(240,246,252,0.02);
+  }
+  .badge-status-pending {
+    background: var(--amberbg);
+    color: var(--amber);
+    border: 1px solid rgba(245,158,11,0.3);
+  }
+  .badge-status-replied {
+    background: var(--greenbg);
+    color: var(--green);
+    border: 1px solid rgba(34,197,94,0.3);
+  }
+  .badge-status-closed {
+    background: var(--border);
+    color: var(--text3);
+    border: 1px solid var(--border);
+  }
+  .role-admin {
+    background: rgba(239,68,68,0.12) !important;
+    color: #f87171 !important;
+    border: 1px solid rgba(239,68,68,0.3) !important;
+  }
+  .role-owner {
+    background: var(--purplebg) !important;
+    color: var(--purple) !important;
+    border: 1px solid rgba(168,85,247,0.3) !important;
+  }
+  .role-user {
+    background: var(--tealbg) !important;
+    color: var(--teal) !important;
+    border: 1px solid rgba(14,165,233,0.3) !important;
+  }
+  .card-emoji-placeholder {
+    width: 100%; height: 120px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3rem;
+    background: linear-gradient(135deg, #1a1f2e 0%, #0d1117 100%);
+    border-radius: var(--radius);
+  }
 </style>
 </head>
 <body>
@@ -739,10 +820,11 @@
     <button class="nav-link" data-nav="explore" onclick="showView('explore')">Explore</button>
     <button class="nav-link" data-nav="areas" onclick="showView('areas')">Area Guide</button>
     <button class="nav-link" data-nav="govt" onclick="showView('govt')">Govt Hostels</button>
+    <button class="nav-link" id="nav-dashboard-btn" data-nav="dashboard" style="display: none;" onclick="showView('dashboard')">Dashboard</button>
     <span id="nav-user-greeting" style="display: none; font-size: 14px; color: var(--text2); margin-left: 12px; margin-right: 8px;">Hi, <strong id="nav-username" style="color: var(--text)"></strong></span>
     <button class="btn-secondary" id="nav-auth-btn" onclick="openModal('authModal')">Login</button>
     <button class="btn-secondary" id="nav-logout-btn" onclick="logoutUser()" style="display: none;">Logout</button>
-    <button class="btn-primary" onclick="handleListProperty()">List Your Property</button>
+    <button class="btn-primary" id="nav-list-property-btn" onclick="handleListProperty()">List Your Property</button>
   </nav>
 </header>
 
@@ -916,6 +998,10 @@
           <button class="chip" data-group="area" data-val="Electronic City" onclick="toggleFilter(this,'area')">Electronic City</button>
           <button class="chip" data-group="area" data-val="BTM Layout" onclick="toggleFilter(this,'area')">BTM Layout</button>
           <button class="chip" data-group="area" data-val="Jayanagar" onclick="toggleFilter(this,'area')">Jayanagar</button>
+          <button class="chip" data-group="area" data-val="Hebbal" onclick="toggleFilter(this,'area')">Hebbal</button>
+          <button class="chip" data-group="area" data-val="Bannerghatta Road" onclick="toggleFilter(this,'area')">Bannerghatta Road</button>
+          <button class="chip" data-group="area" data-val="Rajajinagar" onclick="toggleFilter(this,'area')">Rajajinagar</button>
+          <button class="chip" data-group="area" data-val="Yelahanka" onclick="toggleFilter(this,'area')">Yelahanka</button>
         </div>
       </div>
 
@@ -1012,6 +1098,22 @@
   </div>
 </div>
 
+<!-- ══════════════ DASHBOARD VIEW ══════════════ -->
+<div id="view-dashboard" class="view">
+  <div class="dashboard-page" style="padding: 2rem 4rem; max-width: 1400px; margin: 0 auto;">
+    <div class="page-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;">
+      <div>
+        <h1 class="page-title" style="font-family:'Fraunces',serif; font-size:2.25rem; margin-bottom: 4px;">My Dashboard</h1>
+        <p class="page-sub" style="color:var(--text2); font-size:14px;" id="dashboard-subtitle">Manage listings, view enquiries, and check platform status.</p>
+      </div>
+      <div id="dashboard-role-badge" class="logo-badge" style="text-transform: uppercase;">User</div>
+    </div>
+    <div id="dashboard-content">
+      <!-- Dynamic dashboard blocks based on user role -->
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════ MODALS ══════════════ -->
 <div class="modal-overlay" id="authModal">
   <div class="modal">
@@ -1025,7 +1127,10 @@
             <input class="form-input" type="email" id="login-email" required placeholder="e.g. test@user.com">
           </div>
           <div class="form-group" style="margin-top: 12px;">
-            <label class="form-label">Password</label>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label class="form-label" style="margin-bottom:0;">Password</label>
+              <a href="#" onclick="event.preventDefault(); toggleAuthMode('forgot')" style="color:var(--text3); font-size:11px; text-decoration:none;">Forgot password?</a>
+            </div>
             <input class="form-input" type="password" id="login-password" required placeholder="••••••••">
           </div>
           <div style="margin-top: 16px;">
@@ -1034,6 +1139,42 @@
         </form>
         <p style="font-size: 13px; text-align: center; color: var(--text3); margin-top: 16px;">
           Don't have an account? <a href="#" onclick="event.preventDefault();toggleAuthMode('register')" style="color: var(--accent); text-decoration: none; font-weight: 500;">Sign Up</a>
+        </p>
+      </div>
+
+      <!-- Forgot Password Section (Hidden by default) -->
+      <div id="forgot-section" style="display: none;">
+        <form id="forgotForm" onsubmit="handleForgotPassword(event)">
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input class="form-input" type="email" id="forgot-email" required placeholder="e.g. test@user.com">
+          </div>
+          <div style="margin-top: 16px;">
+            <button class="btn-primary" type="submit" style="width: 100%; padding: 12px;">Request Reset Link</button>
+          </div>
+        </form>
+        <p style="font-size: 13px; text-align: center; color: var(--text3); margin-top: 16px;">
+          Remembered password? <a href="#" onclick="event.preventDefault();toggleAuthMode('login')" style="color: var(--accent); text-decoration: none; font-weight: 500;">Login</a>
+        </p>
+      </div>
+
+      <!-- Reset Password Section (Hidden by default) -->
+      <div id="reset-section" style="display: none;">
+        <form id="resetForm" onsubmit="handleResetPassword(event)">
+          <div class="form-group">
+            <label class="form-label">Reset Token</label>
+            <input class="form-input" type="text" id="reset-token" required placeholder="Enter the 32-character token">
+          </div>
+          <div class="form-group" style="margin-top: 12px;">
+            <label class="form-label">New Password (Min 8 chars)</label>
+            <input class="form-input" type="password" id="reset-password-input" required minlength="8" placeholder="••••••••">
+          </div>
+          <div style="margin-top: 16px;">
+            <button class="btn-primary" type="submit" style="width: 100%; padding: 12px;">Reset Password</button>
+          </div>
+        </form>
+        <p style="font-size: 13px; text-align: center; color: var(--text3); margin-top: 16px;">
+          Back to <a href="#" onclick="event.preventDefault();toggleAuthMode('login')" style="color: var(--accent); text-decoration: none; font-weight: 500;">Login</a>
         </p>
       </div>
 
@@ -1088,18 +1229,18 @@
       </div>
       <div class="form-group">
         <label class="form-label">Your Name</label>
-        <input class="form-input" placeholder="Enter your full name">
+        <input class="form-input" id="contact-name" readonly placeholder="Login to display name">
       </div>
-      <div class="form-group">
+      <div class="form-group" style="margin-top: 12px;">
         <label class="form-label">Phone Number</label>
-        <input class="form-input" placeholder="+91 98xxx xxxxx" type="tel">
+        <input class="form-input" id="contact-phone" placeholder="+91 98xxx xxxxx" type="tel">
       </div>
-      <div class="form-group">
+      <div class="form-group" style="margin-top: 12px;">
         <label class="form-label">Message</label>
-        <textarea class="form-input" rows="3" placeholder="Hi, I'm interested in your property..."></textarea>
+        <textarea class="form-input" id="contact-message" rows="3" placeholder="Hi, I'm interested in your property..."></textarea>
       </div>
     </div>
-    <div class="modal-actions">
+    <div class="modal-actions" style="margin-top: 16px;">
       <button class="btn-secondary" onclick="closeModal('contactModal')">Cancel</button>
       <button class="btn-primary" onclick="sendContact()">Send Message</button>
     </div>
@@ -1278,6 +1419,7 @@ const areaData = [
 
 // ═══════════════ STATE ═══════════════
 let filters = { type:'All', gender:'All', area:'All', budget:25000, amenities:[], sharing:'All', maxDistance: null, userLocation: null };
+let userLocationCoords = null;
 let govtFilter = 'All';
 let isListView = false;
 let savedItems = new Set();
@@ -1285,14 +1427,15 @@ let dbAmenities = [];
 
 // ═══════════════ VIEWS ═══════════════
 function showView(name) {
-  if (name !== 'home') {
+  if (name === 'dashboard') {
     const token = localStorage.getItem('accessToken');
     if (!token) {
-      showToast("Please login to view this content");
+      showToast("Please login to view your dashboard");
       toggleAuthMode('login');
       openModal('authModal');
       return false;
     }
+    renderDashboard();
   }
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById('view-' + name).classList.add('active');
@@ -1313,7 +1456,7 @@ function showView(name) {
 
   // Highlight active mobile nav button
   document.querySelectorAll('.mnav-btn').forEach(b => b.classList.remove('active'));
-  const map = { home:0, explore:1, areas:2, govt:3 };
+  const map = { home:0, explore:1, areas:2, govt:3, dashboard:4 };
   const idx = map[name];
   if (idx !== undefined) document.querySelectorAll('.mnav-btn')[idx]?.classList.add('active');
   window.scrollTo(0,0);
@@ -1649,8 +1792,17 @@ function toggleDistanceFilter(val, btn) {
 
   navigator.geolocation.getCurrentPosition(
     (position) => {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
+      let lat = position.coords.latitude;
+      let lng = position.coords.longitude;
+      
+      const BLR_CENTER = { lat: 12.9716, lng: 77.5946 };
+      const distToBlr = getDistanceKm(lat, lng, BLR_CENTER.lat, BLR_CENTER.lng);
+      if (distToBlr && distToBlr > 100) {
+        lat = 12.9300;
+        lng = 77.6200;
+        showToast("Simulating Koramangala coordinates for demonstration");
+      }
+      
       filters.userLocation = { lat, lng };
       filters.maxDistance = parseFloat(val);
       
@@ -1753,19 +1905,31 @@ function getSelectedRefArea(searchVal) {
 function renderListings() {
   let data = listings.slice();
   const search = (document.getElementById('searchFilter')?.value || '').toLowerCase();
+  
+  const refArea = getSelectedRefArea(search);
+  const refCoords = refArea ? AREA_COORDINATES[refArea] : null;
+
   if (search) data = data.filter(l => l.name.toLowerCase().includes(search) || l.area.toLowerCase().includes(search));
   if (filters.type !== 'All') data = data.filter(l => l.type === filters.type);
   if (filters.gender !== 'All') data = data.filter(l => l.gender === filters.gender || l.gender === 'Co-ed');
   if (filters.area !== 'All') data = data.filter(l => l.area === filters.area);
   data = data.filter(l => l.price <= filters.budget);
   if (filters.amenities.length) data = data.filter(l => filters.amenities.every(a => l.amenities.includes(a)));
-  if (filters.sharing !== 'All') data = data.filter(l => l.sharing === filters.sharing);
+  
+  if (filters.sharing !== 'All') {
+    data = data.filter(l => {
+      if (l.sharings) return l.sharings.includes(filters.sharing);
+      return l.sharing === filters.sharing;
+    });
+  }
+
+  const centerCoords = filters.userLocation || refCoords;
 
   // Filter by distance if active
-  if (filters.maxDistance !== null && filters.userLocation !== null) {
+  if (filters.maxDistance !== null && centerCoords !== null) {
     data = data.filter(l => {
       if (!l.lat || !l.lng) return false;
-      const dist = getDistanceKm(l.lat, l.lng, filters.userLocation.lat, filters.userLocation.lng);
+      const dist = getDistanceKm(l.lat, l.lng, centerCoords.lat, centerCoords.lng);
       return dist !== null && dist <= filters.maxDistance;
     });
   }
@@ -1773,10 +1937,10 @@ function renderListings() {
   const sort = document.getElementById('sortSelect')?.value || 'rating';
   if (sort === 'rating') {
     data.sort((a,b) => b.rating - a.rating);
-  } else if (sort === 'distance-asc' && filters.userLocation !== null) {
+  } else if (sort === 'distance-asc' && centerCoords !== null) {
     data.sort((a,b) => {
-      const distA = getDistanceKm(a.lat, a.lng, filters.userLocation.lat, filters.userLocation.lng) || 9999;
-      const distB = getDistanceKm(b.lat, b.lng, filters.userLocation.lat, filters.userLocation.lng) || 9999;
+      const distA = getDistanceKm(a.lat, a.lng, centerCoords.lat, centerCoords.lng) || 9999;
+      const distB = getDistanceKm(b.lat, b.lng, centerCoords.lat, centerCoords.lng) || 9999;
       return distA - distB;
     });
   } else if (sort === 'price-asc') {
@@ -1794,10 +1958,6 @@ function renderListings() {
     return;
   }
 
-  // Get selected ref area coordinates for distance calculations
-  const refArea = getSelectedRefArea(search);
-  const refCoords = refArea ? AREA_COORDINATES[refArea] : null;
-
   data.forEach(l => {
     const saved = savedItems.has(l.id);
     const typeClass = l.type === 'PG' ? 'badge-type-pg' : l.type === 'Govt Hostel' ? 'badge-type-govt' : 'badge-type-hostel';
@@ -1805,15 +1965,11 @@ function renderListings() {
 
     // Calculate distance if coordinates are available
     let distText = '';
-    if (filters.maxDistance !== null && filters.userLocation !== null && l.lat && l.lng) {
-      const dist = getDistanceKm(l.lat, l.lng, filters.userLocation.lat, filters.userLocation.lng);
+    if (centerCoords && l.lat && l.lng) {
+      const dist = getDistanceKm(l.lat, l.lng, centerCoords.lat, centerCoords.lng);
       if (dist !== null) {
-        distText = ` · <span style="color:var(--teal);font-weight:600">📍 ${dist.toFixed(1)} km away</span>`;
-      }
-    } else if (refCoords && l.lat && l.lng) {
-      const dist = getDistanceKm(l.lat, l.lng, refCoords.lat, refCoords.lng);
-      if (dist !== null) {
-        distText = ` · <span style="color:var(--accent);font-weight:600">📍 ${dist.toFixed(1)} km to ${refArea}</span>`;
+        const label = filters.userLocation && centerCoords === filters.userLocation ? 'away' : `to ${refArea || l.area}`;
+        distText = ` · <span style="color:var(--teal);font-weight:600">📍 ${dist.toFixed(1)} km ${label}</span>`;
       }
     }
 
@@ -1849,7 +2005,7 @@ function renderListings() {
         </div>
         <div class="card-footer">
           <div class="rating">★ ${l.rating} <span class="review-count">(${l.reviews})</span></div>
-          <button class="contact-btn" onclick="event.stopPropagation();openContactModal('${l.owner}')">Contact</button>
+          <button class="contact-btn" onclick="openContactModal(event, '${l.owner}', '${l.id}')">Contact</button>
         </div>
       </div>`;
     card.onclick = () => showDetail(l.id);
@@ -1869,7 +2025,7 @@ function setListView(mode) {
   document.getElementById('listBtn').classList.toggle('active', isListView);
 }
 
-function toggleSave(event, id, el) {
+async function toggleSave(event, id, el) {
   if (event) {
     event.stopPropagation();
     event.preventDefault();
@@ -1880,129 +2036,322 @@ function toggleSave(event, id, el) {
     openModal('authModal');
     return;
   }
-  if (savedItems.has(id)) { savedItems.delete(id); el.textContent = '♡'; el.classList.remove('saved'); showToast('Removed from saved'); }
-  else { savedItems.add(id); el.textContent = '♥'; el.classList.add('saved'); showToast('Saved to wishlist ♥'); }
+  const isSaved = savedItems.has(id);
+  const method = isSaved ? 'DELETE' : 'POST';
+  try {
+    const res = await fetch(`/api/properties/${id}/save`, {
+      method: method,
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (res.ok) {
+      if (isSaved) {
+        savedItems.delete(id);
+        el.textContent = '♡';
+        el.classList.remove('saved');
+        showToast('Removed from saved');
+      } else {
+        savedItems.add(id);
+        el.textContent = '♥';
+        el.classList.add('saved');
+        showToast('Saved to wishlist ♥');
+      }
+      if (document.getElementById('view-dashboard') && document.getElementById('view-dashboard').classList.contains('active')) {
+        renderDashboard();
+      }
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Failed to update wishlist');
+    }
+  } catch (err) {
+    showToast('Network error updating wishlist');
+  }
 }
 
 // ═══════════════ DETAIL ═══════════════
-function showDetail(id) {
-  const l = listings.find(x => x.id === id);
-  if (!l) return;
-  const typeClass = l.type === 'PG' ? 'badge-type-pg' : 'badge-type-hostel';
+async function showDetail(id) {
+  const token = localStorage.getItem('accessToken');
   
-  // Calculate distance
-  const search = (document.getElementById('searchFilter')?.value || '').toLowerCase();
-  const refArea = getSelectedRefArea(search);
-  const refCoords = refArea ? AREA_COORDINATES[refArea] : null;
-  let distText = '';
-  if (refCoords && l.lat && l.lng) {
-    const dist = getDistanceKm(l.lat, l.lng, refCoords.lat, refCoords.lng);
-    if (dist !== null) {
-      distText = ` · <span style="color:var(--accent);font-weight:600">${dist.toFixed(1)} km to ${refArea}</span>`;
-    }
-  }
-
+  // Render loading state first
   document.getElementById('detailContent').innerHTML = `
     <button class="detail-back" onclick="showView('explore')">← Back to listings</button>
-    <div class="detail-grid">
-      <div class="detail-left">
-        <div class="detail-gallery">
-          ${(l.photoUrl && (l.photoUrl.startsWith('http') || l.photoUrl.startsWith('data:image')))
-            ? `<img src="${l.photoUrl}" style="width:100%; height:100%; object-fit:cover;">`
-            : `<div class="gallery-icon">${l.emoji}</div>`}
-          <div style="position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,.6);color:white;font-size:12px;padding:4px 12px;border-radius:99px;backdrop-filter:blur(8px)">📷 View Photos</div>
-          <div style="position:absolute;top:12px;left:12px;display:flex;gap:6px">
-            <span class="badge ${typeClass}">${l.type}</span>
-            ${l.verified ? '<span class="badge badge-verified">✓ Verified</span>' : ''}
-          </div>
-        </div>
-        <div class="detail-header-block">
-          <h1 class="detail-title">${l.name}</h1>
-          <div class="detail-meta">
-            <div class="detail-rating">
-              <span class="stars">★★★★★</span>
-              <span style="font-weight:600">${l.rating}</span>
-              <span style="color:var(--text3);font-size:13px">(${l.reviews} reviews)</span>
-            </div>
-            <span style="color:var(--text3)">·</span>
-            <span style="font-size:13px;color:var(--text2)">📍 ${l.area}, Bengaluru${distText}</span>
-            <span style="color:var(--text3)">·</span>
-            <span style="font-size:13px;color:var(--text2)">👤 ${l.gender}</span>
-          </div>
-        </div>
-        <div class="detail-section">
-          <div class="section-title">About this property</div>
-          <p style="font-size:14px;color:var(--text2);line-height:1.7">${l.desc}</p>
-          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);padding:10px 14px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border)">
-            <span>🏢</span><span><strong style="color:var(--text)">Nearby:</strong> ${l.nearby}</span>
-          </div>
-        </div>
-        <div class="detail-section">
-          <div class="section-title">Amenities</div>
-          <div class="amenities-grid">
-            ${l.amenities.map(a => `<div class="amenity-item"><span class="amenity-icon">${amenityIcon(a)}</span>${a}</div>`).join('')}
-            <div class="amenity-item"><span class="amenity-icon">🔒</span>24×7 Security</div>
-            <div class="amenity-item"><span class="amenity-icon">🚿</span>Hot Water</div>
-            <div class="amenity-item"><span class="amenity-icon">🪑</span>Furnished Rooms</div>
-          </div>
-        </div>
-        <div class="detail-section">
-          <div class="section-title">House Rules</div>
-          <div class="rules-list">
-            ${l.rules.map(r => `<div class="rule-item"><span class="rule-dot"></span>${r}</div>`).join('')}
-          </div>
-        </div>
-        <div class="detail-section">
-          <div class="section-title">Sharing Options & Pricing</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-            ${['Single','Double','Triple'].map((s,i) => `<div style="background:var(--bg2);border:1px solid ${s===l.sharing?'var(--accent)':'var(--border)'};border-radius:var(--radius);padding:12px;text-align:center"><div style="font-size:12px;color:var(--text3);margin-bottom:4px">${s} Room</div><div style="font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;color:${s===l.sharing?'var(--accent)':'var(--text)'}">₹${(l.price - i*1500).toLocaleString('en-IN')}</div><div style="font-size:11px;color:var(--text3)">per month</div></div>`).join('')}
-          </div>
-        </div>
-      </div>
-      <div class="detail-right">
-        <div class="contact-card">
-          <div class="price-big">
-            <span class="price-main">₹${l.price.toLocaleString('en-IN')}</span>
-            <span style="font-size:14px;color:var(--text3)">/month</span>
-          </div>
-          <div class="availability-row">
-            <span class="avail-label">Availability</span>
-            <span class="avail-status">${l.avail ? `<span class="avail-dot"></span>Available Now` : `<span style="width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block"></span> Fully Booked`}</span>
-          </div>
-          <hr class="contact-divider">
-          <div class="owner-row">
-            <div class="owner-avatar">${l.ownerInitial}</div>
-            <div>
-              <div class="owner-name">${l.owner}</div>
-              <div class="owner-label">Property Owner · ${l.verified ? '✓ Verified' : 'Unverified'}</div>
-            </div>
-          </div>
-          <div class="contact-actions">
-            <button class="action-btn primary" onclick="openContactModal('${l.owner}')">📩 Send Enquiry</button>
-            <button class="action-btn outline" onclick="handleOwnerAction('call the owner', 'Calling ${l.phone}...')">📞 Call ${l.phone}</button>
-            <button class="action-btn whatsapp" onclick="handleOwnerAction('whatsapp the owner', 'Opening WhatsApp...')">💬 WhatsApp</button>
-            <button class="action-btn outline" style="color:var(--red); border-color:rgba(239,68,68,0.3); margin-top: 8px;" onclick="openReportModal('${l.id}')">🚩 Report Misinformation</button>
-          </div>
-        </div>
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;font-size:13px">
-          <div style="font-weight:600;margin-bottom:8px">📍 Map Location</div>
-          <div id="detailMap" class="dark-map" style="height:220px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border);position:relative;z-index:1;"></div>
-          <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">
-            <button class="action-btn outline" id="btnGetDirections" onclick="getDirections('${l.id}', ${l.lat}, ${l.lng})" style="padding:8px 12px;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif;">
-              🚗 Get Directions from Live Location
-            </button>
-            <button class="action-btn outline" onclick="window.open('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent('${l.name}, ${l.address}, Bengaluru'), '_blank')" style="padding:8px 12px;font-size:12px;font-weight:600;color:var(--text2);border-color:var(--border);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif;">
-              🗺️ Open in Google Maps
-            </button>
-          </div>
-        </div>
-        <div style="background:var(--amberbg);border:1px solid rgba(245,158,11,.25);border-radius:var(--radius-lg);padding:1rem;font-size:13px;color:var(--amber)">
-          ⚠️ Always visit in person before making payment. Beware of advance payment scams.
-        </div>
-      </div>
-    </div>`;
+    <div style="text-align:center; padding:5rem;"><span style="font-size:1.5rem; color:var(--text2)">⏳ Loading property details...</span></div>
+  `;
   showView('detail');
-  initDetailMap(l.id, l.lat, l.lng, l.name);
+
+  try {
+    const res = await fetch(`/api/properties/${id}`, {
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    });
+    if (!res.ok) {
+      showToast("Could not load property details");
+      showView('explore');
+      return;
+    }
+    const p = await res.json();
+    
+    const typeClass = p.type === 'PG' ? 'badge-type-pg' : 'badge-type-hostel';
+    
+    // Calculate distance
+    const search = (document.getElementById('searchFilter')?.value || '').toLowerCase();
+    const refArea = getSelectedRefArea(search);
+    const refCoords = refArea ? AREA_COORDINATES[refArea] : null;
+    let distText = '';
+    if (refCoords && p.lat && p.lng) {
+      const dist = getDistanceKm(p.lat, p.lng, refCoords.lat, refCoords.lng);
+      if (dist !== null) {
+        distText = ` · <span style="color:var(--accent);font-weight:600">${dist.toFixed(1)} km to ${refArea}</span>`;
+      }
+    }
+
+    // Build amenities grid
+    const amenitiesHtml = p.amenities && p.amenities.length > 0 
+      ? p.amenities.map(a => `<div class="amenity-item"><span class="amenity-icon">${amenityIcon(a.name)}</span>${a.name}</div>`).join('')
+      : `<span style="color:var(--text3)">No amenities listed</span>`;
+
+    // Render reviews HTML
+    let reviewsListHtml = '';
+    if (p.reviews && p.reviews.length > 0) {
+      reviewsListHtml = p.reviews.map(r => `
+        <div class="review-item" style="border-bottom:1px solid var(--border); padding:1rem 0;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="width:30px; height:30px; border-radius:50%; background:var(--bg3); color:var(--text); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600;">
+                ${r.user_name ? r.user_name[0].toUpperCase() : 'U'}
+              </div>
+              <div>
+                <strong style="font-size:14px;">${r.user_name || 'Anonymous'}</strong>
+                <span style="font-size:11px; color:var(--text3); margin-left:6px;">${new Date(r.created_at).toLocaleDateString()}</span>
+              </div>
+            </div>
+            <div style="color:var(--amber); font-size:13px;">${'★'.repeat(Math.round(r.rating))}${'☆'.repeat(5-Math.round(r.rating))} (${r.rating})</div>
+          </div>
+          <p style="font-size:13px; color:var(--text2); line-height:1.5;">${escapeHtml(r.comment)}</p>
+        </div>
+      `).join('');
+    } else {
+      reviewsListHtml = `<div style="padding:1rem 0; color:var(--text3); font-size:13px;">No reviews yet. Be the first to share your experience!</div>`;
+    }
+
+    // Write a review form
+    let reviewFormHtml = '';
+    if (token) {
+      const loggedInUsername = document.getElementById('nav-username').textContent;
+      const isOwner = p.owner && p.owner.name === loggedInUsername;
+      const alreadyReviewed = p.reviews && p.reviews.some(r => r.user_name === loggedInUsername);
+
+      if (!isOwner && !alreadyReviewed) {
+        reviewFormHtml = `
+          <div class="write-review-box" style="margin-top:1.5rem; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem;">
+            <h4 style="font-family:'Fraunces',serif; font-size:1.1rem; margin-bottom:8px;">Write a Review</h4>
+            <form onsubmit="submitReview(event, '${p.id}')">
+              <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                <label class="form-label" style="font-size:12px; margin-bottom:0;">Rating</label>
+                <select class="form-input" id="review-rating" style="cursor:pointer; width:auto; padding:4px 10px; font-size:13px;" required>
+                  <option value="5">5 ★★★★★ (Excellent)</option>
+                  <option value="4">4 ★★★★☆ (Good)</option>
+                  <option value="3">3 ★★★☆☆ (Average)</option>
+                  <option value="2">2 ★★☆☆☆ (Poor)</option>
+                  <option value="1">1 ★☆☆☆☆ (Terrible)</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-top:12px;">
+                <label class="form-label" style="font-size:12px; display:block; margin-bottom:4px;">Comment (min 10 characters)</label>
+                <textarea class="form-input" id="review-comment" rows="3" required placeholder="Describe your stay, food quality, facilities, landlord behavior..."></textarea>
+              </div>
+              <button class="btn-primary" type="submit" style="margin-top:12px; padding:6px 16px; font-size:13px;">Submit Review</button>
+            </form>
+          </div>
+        `;
+      }
+    } else {
+      reviewFormHtml = `
+        <div style="margin-top:1.5rem; padding:12px; background:var(--bg3); border-radius:var(--radius); text-align:center; font-size:12px; color:var(--text3)">
+          Please <a href="#" onclick="event.preventDefault(); openModal('authModal');" style="color:var(--accent); text-decoration:none; font-weight:500;">login</a> to leave a review.
+        </div>
+      `;
+    }
+
+    const rules = p.rules || ['No smoking inside rooms', 'Gate closes at 11 PM', 'Prior notice for guests staying overnight', 'Maintain cleanliness in common areas'];
+
+    document.getElementById('detailContent').innerHTML = `
+      <button class="detail-back" onclick="showView('explore')">← Back to listings</button>
+      <div class="detail-grid">
+        <div class="detail-left">
+          <div class="detail-gallery">
+            ${(p.photo_url && (p.photo_url.startsWith('http') || p.photo_url.startsWith('data:image')))
+              ? `<img src="${p.photo_url}" style="width:100%; height:100%; object-fit:cover;">`
+              : `<div class="gallery-icon">${p.type === 'PG' ? '🏠' : p.type === 'Govt Hostel' ? '🏛️' : '🏢'}</div>`}
+            <div style="position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,.6);color:white;font-size:12px;padding:4px 12px;border-radius:99px;backdrop-filter:blur(8px)">📷 View Photos</div>
+            <div style="position:absolute;top:12px;left:12px;display:flex;gap:6px">
+              <span class="badge ${typeClass}">${p.type}</span>
+              ${p.verified ? '<span class="badge badge-verified">✓ Verified</span>' : ''}
+            </div>
+          </div>
+          <div class="detail-header-block">
+            <h1 class="detail-title">${p.name}</h1>
+            <div class="detail-meta">
+              <div class="detail-rating">
+                <span class="stars" style="color:var(--amber)">★</span>
+                <span style="font-weight:600">${p.avg_rating || 'N/A'}</span>
+                <span style="color:var(--text3);font-size:13px">(${p.review_count} reviews)</span>
+              </div>
+              <span style="color:var(--text3)">·</span>
+              <span style="font-size:13px;color:var(--text2)">📍 ${p.area}, Bengaluru${distText}</span>
+              <span style="color:var(--text3)">·</span>
+              <span style="font-size:13px;color:var(--text2)">👤 ${p.gender}</span>
+            </div>
+          </div>
+          <div class="detail-section">
+            <div class="section-title">About this property</div>
+            <p style="font-size:14px;color:var(--text2);line-height:1.7">${p.description}</p>
+            ${p.nearby_landmarks ? `
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);padding:10px 14px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border);margin-top:12px;">
+                <span>🏢</span><span><strong style="color:var(--text)">Nearby:</strong> ${p.nearby_landmarks}</span>
+              </div>
+            ` : ''}
+          </div>
+          <div class="detail-section">
+            <div class="section-title">Amenities</div>
+            <div class="amenities-grid">
+              ${amenitiesHtml}
+            </div>
+          </div>
+          <div class="detail-section">
+            <div class="section-title">House Rules</div>
+            <div class="rules-list">
+              ${rules.map(r => `<div class="rule-item"><span class="rule-dot"></span>${r}</div>`).join('')}
+            </div>
+          </div>
+          <div class="detail-section">
+            <div class="section-title">Rooms & Pricing</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));gap:8px">
+              ${p.rooms && p.rooms.length > 0 
+                ? p.rooms.map(room => `
+                    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center">
+                      <div style="font-size:12px;color:var(--text3);margin-bottom:4px">${room.sharing_type} Sharing</div>
+                      <div style="font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;color:var(--text)">₹${room.price.toLocaleString('en-IN')}</div>
+                      <div style="font-size:11px;color:var(--text3)">per month</div>
+                    </div>
+                  `).join('')
+                : `
+                    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center">
+                      <div style="font-size:12px;color:var(--text3);margin-bottom:4px">Standard Rent</div>
+                      <div style="font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;color:var(--text)">₹${p.price_min.toLocaleString('en-IN')}</div>
+                      <div style="font-size:11px;color:var(--text3)">per month</div>
+                    </div>
+                  `
+              }
+            </div>
+          </div>
+          
+          <!-- ── REVIEWS SECTION ── -->
+          <div class="detail-section" style="margin-top:2rem; border-top:1px solid var(--border); padding-top:2rem;">
+            <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>User Reviews (${p.review_count})</span>
+              <span style="font-size:14px; color:var(--text2)">Avg: ⭐ ${p.avg_rating || 'N/A'}</span>
+            </div>
+            <div class="reviews-list">
+              ${reviewsListHtml}
+            </div>
+            ${reviewFormHtml}
+          </div>
+        </div>
+        <div class="detail-right">
+          <div class="contact-card">
+            <div class="price-big">
+              <span class="price-main">₹${p.price_min.toLocaleString('en-IN')}</span>
+              <span style="font-size:14px;color:var(--text3)">/month</span>
+            </div>
+            <div class="availability-row">
+              <span class="avail-label">Availability</span>
+              <span class="avail-status">${p.available === 1 ? `<span class="avail-dot"></span>Available Now` : `<span style="width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block"></span> Fully Booked`}</span>
+            </div>
+            <hr class="contact-divider">
+            <div class="owner-row">
+              <div class="owner-avatar">${p.owner ? p.owner.name[0].toUpperCase() : 'O'}</div>
+              <div>
+                <div class="owner-name">${p.owner ? p.owner.name : 'Unknown Owner'}</div>
+                <div class="owner-label">Property Host · ${p.owner && p.owner.verified ? '✓ Verified' : 'Unverified'}</div>
+              </div>
+            </div>
+            <div class="contact-actions">
+              <button class="action-btn primary" onclick="openContactModal(event, '${p.owner ? p.owner.name : 'Owner'}', '${p.id}')">📩 Send Enquiry</button>
+              <button class="action-btn outline" onclick="handleOwnerAction('call the owner', 'Calling ${p.owner ? p.owner.phone : ''}...')">📞 Call Owner</button>
+              <button class="action-btn whatsapp" onclick="handleOwnerAction('whatsapp the owner', 'Opening WhatsApp...')">💬 WhatsApp</button>
+              <button class="action-btn outline" style="color:var(--red); border-color:rgba(239,68,68,0.3); margin-top: 8px;" onclick="openReportModal('${p.id}')">🚩 Report Misinformation</button>
+            </div>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;font-size:13px">
+            <div style="font-weight:600;margin-bottom:8px">📍 Map Location</div>
+            <div id="detailMap" class="dark-map" style="height:220px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border);position:relative;z-index:1;"></div>
+            <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">
+              <button class="action-btn outline" id="btnGetDirections" onclick="getDirections('${p.id}', ${p.lat}, ${p.lng})" style="padding:8px 12px;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif;">
+                🚗 Get Directions from Live Location
+              </button>
+              <button class="action-btn outline" onclick="window.open('https://www.google.com/maps/dir/?api=1&origin=My+Location&destination=${p.lat},${p.lng}', '_blank')" style="padding:8px 12px;font-size:12px;font-weight:600;color:var(--text2);border-color:var(--border);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif;">
+                🗺️ Open in Google Maps
+              </button>
+            </div>
+          </div>
+          <div style="background:var(--amberbg);border:1px solid rgba(245,158,11,.25);border-radius:var(--radius-lg);padding:1rem;font-size:13px;color:var(--amber)">
+            ⚠️ Always visit in person before making payment. Beware of advance payment scams.
+          </div>
+        </div>
+      </div>`;
+    
+    initDetailMap(p.id, p.lat, p.lng, p.name);
+
+  } catch (err) {
+    console.error("Error fetching detail:", err);
+    showToast("Server connection error loading listing details");
+    showView('explore');
+  }
+}
+
+async function submitReview(event, pid) {
+  if (event) event.preventDefault();
+  const token = localStorage.getItem('accessToken');
+  if (!token) {
+    showToast("Please login to write a review");
+    openModal('authModal');
+    return;
+  }
+  
+  const rating = parseFloat(document.getElementById('review-rating').value);
+  const comment = document.getElementById('review-comment').value.trim();
+  
+  if (!rating || rating < 1 || rating > 5) {
+    showToast("Please select a rating between 1 and 5");
+    return;
+  }
+  if (!comment || comment.length < 10) {
+    showToast("Comment must be at least 10 characters long");
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/properties/${pid}/reviews`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ rating, comment })
+    });
+    
+    if (res.ok) {
+      showToast("Review submitted successfully! Thank you.");
+      await fetchLiveDBData();
+      showDetail(pid);
+    } else {
+      const err = await res.json();
+      showToast(err.error || "Failed to submit review");
+    }
+  } catch (err) {
+    showToast("Network error submitting review");
+  }
 }
 
 // ═══════════════ GOVT ═══════════════
@@ -2014,11 +2363,28 @@ function filterGovt(btn) {
 }
 
 function renderGovt() {
-  let data = govtListings;
+  let data = govtListings.slice();
   if (govtFilter !== 'All') data = data.filter(g => g.eligibility.includes(govtFilter));
+  
+  if (userLocationCoords) {
+    data.sort((a, b) => {
+      const distA = getDistanceKm(a.lat, a.lng, userLocationCoords.lat, userLocationCoords.lng) || 9999;
+      const distB = getDistanceKm(b.lat, b.lng, userLocationCoords.lat, userLocationCoords.lng) || 9999;
+      return distA - distB;
+    });
+  }
+
   const grid = document.getElementById('govtGrid');
   grid.innerHTML = '';
   data.forEach(g => {
+    let distText = `📍 ${g.area}`;
+    if (userLocationCoords && g.lat && g.lng) {
+      const dist = getDistanceKm(g.lat, g.lng, userLocationCoords.lat, userLocationCoords.lng);
+      if (dist !== null) {
+        distText = `📍 ${g.area} · <span style="color:var(--teal); font-weight:600;">${dist.toFixed(1)} km away</span>`;
+      }
+    }
+
     const card = document.createElement('div');
     card.className = 'govt-card';
     card.innerHTML = `
@@ -2030,7 +2396,7 @@ function renderGovt() {
         <div class="govt-icon">${g.icon}</div>
       </div>
       <div class="govt-details">
-        <div class="govt-detail-row">📍 ${g.area}</div>
+        <div class="govt-detail-row">${distText}</div>
         <div class="govt-detail-row">🪑 ${g.seats} seats available</div>
         <div class="govt-detail-row" style="font-size:12px;color:var(--text3)">${g.desc}</div>
       </div>
@@ -2090,7 +2456,9 @@ function closeModal(id) {
     }
   }
 }
-function openContactModal(event, owner) {
+let activeEnquiryPropertyId = '';
+
+function openContactModal(event, owner, propertyId) {
   if (event) {
     event.stopPropagation();
     event.preventDefault();
@@ -2101,7 +2469,11 @@ function openContactModal(event, owner) {
     openModal('authModal');
     return;
   }
-  document.getElementById('contactOwnerName').textContent = owner;
+  activeEnquiryPropertyId = propertyId || '';
+  document.getElementById('contactOwnerName').textContent = owner || 'Owner';
+  document.getElementById('contact-name').value = document.getElementById('nav-username').textContent || 'User';
+  document.getElementById('contact-phone').value = '';
+  document.getElementById('contact-message').value = '';
   openModal('contactModal');
 }
 function handleOwnerAction(action, detailText) {
@@ -2172,9 +2544,45 @@ function handleApply(url) {
   }, 800);
 }
 
-function sendContact() {
-  closeModal('contactModal');
-  showToast('Message sent! Owner will contact you soon.');
+async function sendContact() {
+  const token = localStorage.getItem('accessToken');
+  if (!token) {
+    showToast("Please login to send messages");
+    openModal('authModal');
+    return;
+  }
+  const phone = document.getElementById('contact-phone').value.trim();
+  const message = document.getElementById('contact-message').value.trim();
+  if (!message) {
+    showToast("Please enter a message");
+    return;
+  }
+  if (message.length < 5) {
+    showToast("Message must be at least 5 characters long");
+    return;
+  }
+  try {
+    const res = await fetch(`/api/properties/${activeEnquiryPropertyId}/enquiries`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ message, phone })
+    });
+    if (res.ok) {
+      closeModal('contactModal');
+      showToast('Enquiry sent successfully! Owner will contact you.');
+      if (document.getElementById('view-dashboard') && document.getElementById('view-dashboard').classList.contains('active')) {
+        renderDashboard();
+      }
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Failed to send enquiry');
+    }
+  } catch (err) {
+    showToast('Network error sending enquiry');
+  }
 }
 
 // Handle property photo selection and base64 preview
@@ -2354,8 +2762,8 @@ async function fetchLiveDBData() {
     const resProps = await fetch('/api/properties');
     if (resProps.ok) {
       const dataJson = await resProps.json();
+      listings.length = 0; // Clear listings unconditionally
       if (dataJson.data && dataJson.data.length > 0) {
-        listings.length = 0; // Clear mock listings
         dataJson.data.forEach(p => {
           listings.push({
             id: p.id,
@@ -2367,6 +2775,7 @@ async function fetchLiveDBData() {
             lat: p.lat,
             lng: p.lng,
             sharing: p.rooms && p.rooms.length > 0 ? p.rooms[0].sharing_type : 'Single',
+            sharings: p.rooms && p.rooms.length > 0 ? p.rooms.map(r => r.sharing_type) : ['Single'],
             amenities: p.amenities ? p.amenities.map(a => a.name) : [],
             rating: p.avg_rating || 5.0,
             reviews: p.review_count || 0,
@@ -2390,8 +2799,8 @@ async function fetchLiveDBData() {
     const resGovt = await fetch('/api/govt-hostels');
     if (resGovt.ok) {
       const govtJson = await resGovt.json();
+      govtListings.length = 0; // Clear govtListings unconditionally
       if (govtJson.data && govtJson.data.length > 0) {
-        govtListings.length = 0; // Clear mock govt listings
         govtJson.data.forEach(g => {
           govtListings.push({
             id: g.id,
@@ -2404,7 +2813,9 @@ async function fetchLiveDBData() {
             contact: g.contact || '',
             apply: g.apply_url || 'https://sw.kar.nic.in',
             desc: g.description,
-            icon: g.eligibility && g.eligibility.includes('Women') ? '👩' : '🏛️'
+            icon: g.eligibility && g.eligibility.includes('Women') ? '👩' : '🏛️',
+            lat: g.lat,
+            lng: g.lng
           });
         });
         console.log("Loaded live government hostels from SQLite database.");
@@ -2415,8 +2826,8 @@ async function fetchLiveDBData() {
     const resAreas = await fetch('/api/areas');
     if (resAreas.ok) {
       const areasJson = await resAreas.json();
+      areaData.length = 0; // Clear areaData unconditionally
       if (areasJson.data && areasJson.data.length > 0) {
-        areaData.length = 0; // Clear mock area data
         areasJson.data.forEach(a => {
           areaData.push({
             name: a.name,
@@ -2442,19 +2853,776 @@ async function fetchLiveDBData() {
   }
 }
 
+// ═══════════════ DASHBOARD SYSTEM ═══════════════
+let activeDashboardTab = '';
+
+async function renderDashboard() {
+  const token = localStorage.getItem('accessToken');
+  if (!token) return;
+
+  const contentContainer = document.getElementById('dashboard-content');
+  if (!contentContainer) return;
+  contentContainer.innerHTML = `<div style="text-align:center; padding:3rem;"><span style="font-size:1.5rem;">⏳ Loading your dashboard...</span></div>`;
+
+  try {
+    const meRes = await fetch('/api/auth/me', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!meRes.ok) {
+      showToast("Session expired. Please login again.");
+      logoutUser();
+      return;
+    }
+    const user = await meRes.json();
+    document.getElementById('dashboard-role-badge').textContent = user.role;
+    document.getElementById('dashboard-role-badge').className = `logo-badge role-${user.role}`;
+    
+    if (user.role === 'admin') {
+      if (!['admin-stats', 'admin-props', 'admin-users', 'admin-reports', 'admin-reviews'].includes(activeDashboardTab)) {
+        activeDashboardTab = 'admin-stats';
+      }
+    } else if (user.role === 'owner') {
+      if (!['owner-listings', 'owner-enquiries'].includes(activeDashboardTab)) {
+        activeDashboardTab = 'owner-listings';
+      }
+    } else {
+      if (!['user-enquiries', 'user-wishlist'].includes(activeDashboardTab)) {
+        activeDashboardTab = 'user-enquiries';
+      }
+    }
+
+    let tabsHtml = '';
+    if (user.role === 'admin') {
+      tabsHtml = `
+        <div class="dash-tabs" style="display:flex; gap:10px; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:1.5rem; overflow-x:auto;">
+          <button class="nav-link ${activeDashboardTab==='admin-stats'?'active':''}" onclick="setDashboardTab('admin-stats')">📊 Overview</button>
+          <button class="nav-link ${activeDashboardTab==='admin-props'?'active':''}" onclick="setDashboardTab('admin-props')">🏡 Properties</button>
+          <button class="nav-link ${activeDashboardTab==='admin-users'?'active':''}" onclick="setDashboardTab('admin-users')">👤 Users</button>
+          <button class="nav-link ${activeDashboardTab==='admin-reports'?'active':''}" onclick="setDashboardTab('admin-reports')">🚩 Reports</button>
+          <button class="nav-link ${activeDashboardTab==='admin-reviews'?'active':''}" onclick="setDashboardTab('admin-reviews')">⭐ Reviews</button>
+        </div>
+      `;
+    } else if (user.role === 'owner') {
+      tabsHtml = `
+        <div class="dash-tabs" style="display:flex; gap:10px; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:1.5rem;">
+          <button class="nav-link ${activeDashboardTab==='owner-listings'?'active':''}" onclick="setDashboardTab('owner-listings')">🏡 My Listings</button>
+          <button class="nav-link ${activeDashboardTab==='owner-enquiries'?'active':''}" onclick="setDashboardTab('owner-enquiries')">📩 Received Enquiries</button>
+        </div>
+      `;
+    } else {
+      tabsHtml = `
+        <div class="dash-tabs" style="display:flex; gap:10px; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:1.5rem;">
+          <button class="nav-link ${activeDashboardTab==='user-enquiries'?'active':''}" onclick="setDashboardTab('user-enquiries')">📩 Sent Enquiries</button>
+          <button class="nav-link ${activeDashboardTab==='user-wishlist'?'active':''}" onclick="setDashboardTab('user-wishlist')">♥ My Wishlist</button>
+        </div>
+      `;
+    }
+
+    contentContainer.innerHTML = `
+      ${tabsHtml}
+      <div id="dash-tab-content">
+        <div style="text-align:center; padding:2rem;"><span style="font-size:1.1rem; color:var(--text2)">Loading tab content...</span></div>
+      </div>
+    `;
+
+    renderDashboardTabContent(user, token);
+
+  } catch (err) {
+    console.error("Error rendering dashboard:", err);
+    contentContainer.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--red)"><span style="font-size:1.2rem;">❌ Failed to load dashboard. Please verify server is running.</span></div>`;
+  }
+}
+
+function setDashboardTab(tabName) {
+  activeDashboardTab = tabName;
+  renderDashboard();
+}
+
+async function renderDashboardTabContent(user, token) {
+  const tabContent = document.getElementById('dash-tab-content');
+  if (!tabContent) return;
+
+  try {
+    if (activeDashboardTab === 'user-enquiries') {
+      const res = await fetch('/api/enquiries/mine', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!data || data.length === 0) {
+        tabContent.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text3)">No enquiries sent yet. Go find your stay on the Explore tab!</div>`;
+        return;
+      }
+      tabContent.innerHTML = `
+        <div style="overflow-x:auto;">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Area</th>
+                <th>Message</th>
+                <th>Sent Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map(item => `
+                <tr>
+                  <td><a href="#" style="color:var(--text); text-decoration:underline;" onclick="event.preventDefault(); showDetail('${item.property_id}')">${item.property_name}</a></td>
+                  <td>${item.area}</td>
+                  <td>${escapeHtml(item.message)}</td>
+                  <td>${new Date(item.created_at).toLocaleDateString()}</td>
+                  <td><span class="badge badge-status-${item.status}">${item.status}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    else if (activeDashboardTab === 'user-wishlist') {
+      const res = await fetch('/api/properties/saved', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!data || data.length === 0) {
+        tabContent.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text3)">Your wishlist is empty. Save properties by clicking the heart icons!</div>`;
+        return;
+      }
+      tabContent.innerHTML = `
+        <div class="listings-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1.5rem;">
+          ${data.map(p => {
+            const photoHtml = (p.photo_url && (p.photo_url.startsWith('http') || p.photo_url.startsWith('data:image')))
+              ? `<img src="${p.photo_url}" style="width:100%; height:100%; object-fit:cover;">`
+              : `<div class="card-emoji-placeholder">${p.type === 'PG' ? '🏠' : '🏢'}</div>`;
+            const isSaved = savedItems.has(p.id);
+            return `
+              <div class="listing-card" onclick="showDetail('${p.id}')">
+                <div class="card-img-wrap">
+                  ${photoHtml}
+                  <button class="save-btn ${isSaved?'saved':''}" onclick="toggleSave(event, '${p.id}', this)">${isSaved?'♥':'♡'}</button>
+                  <span class="card-badge-type card-badge-${p.type==='PG'?'pg':'hostel'}">${p.type}</span>
+                </div>
+                <div class="card-body">
+                  <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                    <span style="font-size:12px; color:var(--text2)">📍 ${p.area} · ${p.gender}</span>
+                    ${p.verified ? '<span style="color:var(--teal); font-size:11px; font-weight:600">✓ Verified</span>' : ''}
+                  </div>
+                  <h3 class="card-title">${p.name}</h3>
+                  <p class="card-price">₹${p.price_min.toLocaleString('en-IN')}<span style="font-size:11px; color:var(--text3)">/mo</span></p>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    else if (activeDashboardTab === 'owner-listings') {
+      const res = await fetch('/api/properties/owner/mine', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!data || data.length === 0) {
+        tabContent.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text3)">You have no listings. Click "List Your Property" above to create one!</div>`;
+        return;
+      }
+      tabContent.innerHTML = `
+        <div class="listings-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:1.5rem;">
+          ${data.map(p => {
+            const photoHtml = (p.photo_url && (p.photo_url.startsWith('http') || p.photo_url.startsWith('data:image')))
+              ? `<img src="${p.photo_url}" style="width:100%; height:100%; object-fit:cover;">`
+              : `<div class="card-emoji-placeholder">${p.type === 'PG' ? '🏠' : '🏢'}</div>`;
+            return `
+              <div class="listing-card" style="cursor:default;" onclick="event.stopPropagation();">
+                <div class="card-img-wrap" style="cursor:pointer;" onclick="showDetail('${p.id}')">
+                  ${photoHtml}
+                  <span class="card-badge-type card-badge-${p.type==='PG'?'pg':'hostel'}">${p.type}</span>
+                </div>
+                <div class="card-body">
+                  <div style="display:flex; justify-content:space-between; margin-bottom:4px; align-items:center;">
+                    <span style="font-size:12px; color:var(--text2)">📍 ${p.area} · ${p.gender}</span>
+                    <span class="badge ${p.available ? 'badge-status-replied' : 'badge-status-closed'}">${p.available ? 'Available' : 'Booked'}</span>
+                  </div>
+                  <h3 class="card-title" style="cursor:pointer;" onclick="showDetail('${p.id}')">${p.name}</h3>
+                  <p class="card-price">₹${p.price_min.toLocaleString('en-IN')} - ₹${p.price_max.toLocaleString('en-IN')}<span style="font-size:11px; color:var(--text3)">/mo</span></p>
+                  <div style="display:flex; gap:10px; margin-top:1rem; border-top: 1px solid var(--border); padding-top:10px;">
+                    <button class="btn-secondary" style="flex:1; padding:6px 12px; font-size:12px;" onclick="toggleListingAvailability('${p.id}', ${p.available})">
+                      🔄 ${p.available ? 'Mark Booked' : 'Mark Available'}
+                    </button>
+                    <button class="btn-secondary" style="color:var(--red); border-color:rgba(239,68,68,0.3); padding:6px 12px; font-size:12px;" onclick="deleteListing('${p.id}')">
+                      🗑️ Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    else if (activeDashboardTab === 'owner-enquiries') {
+      const res = await fetch('/api/enquiries/received', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!data || data.length === 0) {
+        tabContent.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text3)">No enquiries received yet. Make sure your listing is verified and active!</div>`;
+        return;
+      }
+      tabContent.innerHTML = `
+        <div style="overflow-x:auto;">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>User Details</th>
+                <th>Message</th>
+                <th>Received Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map(item => `
+                <tr>
+                  <td>${item.property_name}</td>
+                  <td>
+                    <strong>${item.user_name}</strong><br>
+                    <span style="font-size:12px; color:var(--text2)">📞 ${item.user_phone || 'No phone'}</span><br>
+                    <span style="font-size:12px; color:var(--text2)">✉️ ${item.user_email}</span>
+                  </td>
+                  <td>${escapeHtml(item.message)}</td>
+                  <td>${new Date(item.created_at).toLocaleDateString()}</td>
+                  <td><span class="badge badge-status-${item.status}">${item.status}</span></td>
+                  <td>
+                    ${item.status === 'pending' ? `
+                      <button class="btn-secondary" style="padding:4px 8px; font-size:11px; margin-right:4px;" onclick="updateEnquiry('${item.id}', 'replied')">✅ Mark Replied</button>
+                      <button class="btn-secondary" style="padding:4px 8px; font-size:11px; color:var(--text3)" onclick="updateEnquiry('${item.id}', 'closed')">🔒 Close</button>
+                    ` : `
+                      <span style="color:var(--text3); font-size:11px;">No action needed</span>
+                    `}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    else if (activeDashboardTab === 'admin-stats') {
+      const res = await fetch('/api/admin/stats', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      tabContent.innerHTML = `
+        <div class="stats-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:1.25rem; margin-bottom:2rem;">
+          <div class="stat-card" style="background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem;">
+            <div style="font-size:12px; color:var(--text3); text-transform:uppercase;">Total Users</div>
+            <div style="font-size:2rem; font-weight:700; color:var(--text); margin:5px 0;">${data.counts.users}</div>
+            <div style="font-size:11px; color:var(--text2);">${data.counts.owners} property hosts</div>
+          </div>
+          <div class="stat-card" style="background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem;">
+            <div style="font-size:12px; color:var(--text3); text-transform:uppercase;">Properties Listed</div>
+            <div style="font-size:2rem; font-weight:700; color:var(--text); margin:5px 0;">${data.counts.total_properties}</div>
+            <div style="font-size:11px; color:var(--text2);">${data.counts.available_properties} active</div>
+          </div>
+          <div class="stat-card" style="background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem;">
+            <div style="font-size:12px; color:var(--text3); text-transform:uppercase;">Property Enquiries</div>
+            <div style="font-size:2rem; font-weight:700; color:var(--text); margin:5px 0;">${data.counts.enquiries}</div>
+            <div style="font-size:11px; color:var(--text2);">${data.counts.pending_enquiries} pending reply</div>
+          </div>
+          <div class="stat-card" style="background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem;">
+            <div style="font-size:12px; color:var(--text3); text-transform:uppercase;">Reviews & Hostels</div>
+            <div style="font-size:2rem; font-weight:700; color:var(--text); margin:5px 0;">${data.counts.reviews}</div>
+            <div style="font-size:11px; color:var(--text2);">${data.counts.govt_hostels} Gov hostels active</div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:2rem; margin-top:2rem;">
+          <div>
+            <h3 style="font-family:'Fraunces',serif; font-size:1.25rem; margin-bottom:1rem;">🆕 Recent Users</h3>
+            <div style="overflow-x:auto;">
+              <table class="dash-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.recent.users.map(u => `
+                    <tr>
+                      <td>${u.name}</td>
+                      <td>${u.email}</td>
+                      <td><span class="badge role-${u.role}">${u.role}</span></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <h3 style="font-family:'Fraunces',serif; font-size:1.25rem; margin-bottom:1rem;">🆕 Recent Properties</h3>
+            <div style="overflow-x:auto;">
+              <table class="dash-table">
+                <thead>
+                  <tr>
+                    <th>Property</th>
+                    <th>Area</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.recent.properties.map(p => `
+                    <tr>
+                      <td><a href="#" style="color:var(--text);" onclick="event.preventDefault(); showDetail('${p.id}')">${p.name}</a></td>
+                      <td>${p.area}</td>
+                      <td><span class="badge ${p.verified ? 'badge-status-replied' : 'badge-status-closed'}">${p.verified ? 'Verified' : 'Unverified'}</span></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    else if (activeDashboardTab === 'admin-props') {
+      const res = await fetch('/api/admin/properties', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      tabContent.innerHTML = `
+        <div style="overflow-x:auto;">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Type & Area</th>
+                <th>Verified</th>
+                <th>Featured</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.data.map(p => `
+                <tr>
+                  <td><a href="#" style="color:var(--text); font-weight:500;" onclick="event.preventDefault(); showDetail('${p.id}')">${p.name}</a></td>
+                  <td>${p.type} in ${p.area}</td>
+                  <td>
+                    <span class="badge ${p.verified ? 'badge-status-replied' : 'badge-status-closed'}">${p.verified ? 'Yes' : 'No'}</span>
+                  </td>
+                  <td>
+                    <span class="badge ${p.featured ? 'badge-status-replied' : 'badge-status-closed'}">${p.featured ? 'Yes' : 'No'}</span>
+                  </td>
+                  <td>
+                    <button class="btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="adminToggleVerify('${p.id}', ${p.verified})">
+                      ${p.verified ? 'Unverify' : 'Verify'}
+                    </button>
+                    <button class="btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="adminToggleFeature('${p.id}', ${p.featured})">
+                      ${p.featured ? 'Unfeature' : 'Feature'}
+                    </button>
+                    <button class="btn-secondary" style="padding:4px 8px; font-size:11px; color:var(--red); border-color:rgba(239,68,68,0.3)" onclick="adminDeleteProp('${p.id}')">
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    else if (activeDashboardTab === 'admin-users') {
+      const res = await fetch('/api/admin/users', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      tabContent.innerHTML = `
+        <div style="overflow-x:auto;">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>User Details</th>
+                <th>Role</th>
+                <th>Verified Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.data.map(u => `
+                <tr>
+                  <td>
+                    <strong>${u.name}</strong><br>
+                    <span style="font-size:12px; color:var(--text2)">✉️ ${u.email}</span><br>
+                    <span style="font-size:12px; color:var(--text2)">📞 ${u.phone || 'No phone'}</span>
+                  </td>
+                  <td><span class="badge role-${u.role}">${u.role}</span></td>
+                  <td>
+                    <span class="badge ${u.verified ? 'badge-status-replied' : 'badge-status-closed'}">${u.verified ? 'Verified' : 'Unverified'}</span>
+                  </td>
+                  <td>
+                    <button class="btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="adminToggleUserVerify('${u.id}', ${u.verified})">
+                      ${u.verified ? 'Unverify' : 'Verify'}
+                    </button>
+                    <select class="sort-select" style="padding:3px 6px; font-size:11px; height:auto; width:auto; border-radius:5px;" onchange="adminChangeRole('${u.id}', this.value)">
+                      <option value="" disabled selected>Change Role</option>
+                      <option value="user">User</option>
+                      <option value="owner">Owner</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                    <button class="btn-secondary" style="padding:4px 8px; font-size:11px; color:var(--red); border-color:rgba(239,68,68,0.3)" onclick="adminDeleteUser('${u.id}')">
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    else if (activeDashboardTab === 'admin-reports') {
+      const res = await fetch('/api/admin/reports', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!data || data.length === 0) {
+        tabContent.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text3)">No complaints or reports filed. Platform is running clean!</div>`;
+        return;
+      }
+      tabContent.innerHTML = `
+        <div style="overflow-x:auto;">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Reported By</th>
+                <th>Reason</th>
+                <th>Details</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map(item => `
+                <tr>
+                  <td><a href="#" style="color:var(--text); font-weight:500;" onclick="event.preventDefault(); showDetail('${item.property_id}')">${item.property_name}</a></td>
+                  <td>${item.user_name} (${item.user_email})</td>
+                  <td><span class="badge badge-status-closed" style="text-transform:uppercase;">${item.reason}</span></td>
+                  <td>${escapeHtml(item.description || 'No explanation provided')}</td>
+                  <td>${new Date(item.created_at).toLocaleDateString()}</td>
+                  <td>
+                    <button class="btn-secondary" style="padding:4px 8px; font-size:11px; color:var(--red); border-color:rgba(239,68,68,0.3)" onclick="adminDeleteProp('${item.property_id}')">
+                      Delete Property
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    else if (activeDashboardTab === 'admin-reviews') {
+      const res = await fetch('/api/admin/reviews', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!data || data.length === 0) {
+        tabContent.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text3)">No reviews posted on the platform yet.</div>`;
+        return;
+      }
+      tabContent.innerHTML = `
+        <div style="overflow-x:auto;">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>User</th>
+                <th>Rating</th>
+                <th>Comment</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map(item => `
+                <tr>
+                  <td>${item.property_name}</td>
+                  <td>${item.user_name} (${item.email})</td>
+                  <td>⭐ ${item.rating}/5</td>
+                  <td>${escapeHtml(item.comment)}</td>
+                  <td>${new Date(item.created_at).toLocaleDateString()}</td>
+                  <td>
+                    <button class="btn-secondary" style="padding:4px 8px; font-size:11px; color:var(--red); border-color:rgba(239,68,68,0.3)" onclick="adminDeleteReview('${item.id}')">
+                      Delete Review
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+  } catch (err) {
+    console.error("Error loading dashboard tab data", err);
+    tabContent.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--red)">Failed to load data for this tab. Connection error.</div>`;
+  }
+}
+
+// ── OWNER ACTIONS ──
+async function toggleListingAvailability(pid, current) {
+  const token = localStorage.getItem('accessToken');
+  try {
+    const res = await fetch(`/api/properties/${pid}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ available: !current })
+    });
+    if (res.ok) {
+      showToast("Availability status updated!");
+      await fetchLiveDBData();
+      renderDashboard();
+    } else {
+      showToast("Failed to update status");
+    }
+  } catch (err) {
+    showToast("Network error updating listing");
+  }
+}
+
+async function deleteListing(pid) {
+  if (!confirm("Are you absolutely sure you want to delete this listing? This action cannot be undone.")) return;
+  const token = localStorage.getItem('accessToken');
+  try {
+    const res = await fetch(`/api/properties/${pid}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (res.ok) {
+      showToast("Listing deleted successfully.");
+      await fetchLiveDBData();
+      renderDashboard();
+    } else {
+      showToast("Failed to delete listing");
+    }
+  } catch (err) {
+    showToast("Network error deleting listing");
+  }
+}
+
+async function updateEnquiry(eid, status) {
+  const token = localStorage.getItem('accessToken');
+  try {
+    const res = await fetch(`/api/enquiries/${eid}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ status })
+    });
+    if (res.ok) {
+      showToast(`Enquiry status updated to ${status}`);
+      renderDashboard();
+    } else {
+      showToast("Failed to update status");
+    }
+  } catch (err) {
+    showToast("Network error updating status");
+  }
+}
+
+// ── ADMIN ACTIONS ──
+async function adminToggleVerify(pid, current) {
+  const token = localStorage.getItem('accessToken');
+  try {
+    const res = await fetch(`/api/admin/properties/${pid}/verify`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ verified: !current })
+    });
+    if (res.ok) {
+      showToast("Property verification updated!");
+      await fetchLiveDBData();
+      renderDashboard();
+    }
+  } catch (e) {
+    showToast("Network error");
+  }
+}
+
+async function adminToggleFeature(pid, current) {
+  const token = localStorage.getItem('accessToken');
+  try {
+    const res = await fetch(`/api/admin/properties/${pid}/feature`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ featured: !current })
+    });
+    if (res.ok) {
+      showToast("Property featured status updated!");
+      await fetchLiveDBData();
+      renderDashboard();
+    }
+  } catch (e) {
+    showToast("Network error");
+  }
+}
+
+async function adminDeleteProp(pid) {
+  if (!confirm("Delete this property listing?")) return;
+  const token = localStorage.getItem('accessToken');
+  try {
+    const res = await fetch(`/api/admin/properties/${pid}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      showToast("Property deleted by Admin");
+      await fetchLiveDBData();
+      renderDashboard();
+    }
+  } catch (e) {
+    showToast("Network error");
+  }
+}
+
+async function adminToggleUserVerify(uid, current) {
+  const token = localStorage.getItem('accessToken');
+  try {
+    const res = await fetch(`/api/admin/users/${uid}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ verified: !current })
+    });
+    if (res.ok) {
+      showToast("User verification updated!");
+      renderDashboard();
+    }
+  } catch (e) {
+    showToast("Network error");
+  }
+}
+
+async function adminChangeRole(uid, role) {
+  const token = localStorage.getItem('accessToken');
+  try {
+    const res = await fetch(`/api/admin/users/${uid}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ role })
+    });
+    if (res.ok) {
+      showToast(`User role updated to ${role}!`);
+      renderDashboard();
+    }
+  } catch (e) {
+    showToast("Network error");
+  }
+}
+
+async function adminDeleteUser(uid) {
+  if (!confirm("Are you sure you want to delete this user account?")) return;
+  const token = localStorage.getItem('accessToken');
+  try {
+    const res = await fetch(`/api/admin/users/${uid}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      showToast("User deleted from platform");
+      renderDashboard();
+    } else {
+      const err = await res.json();
+      showToast(err.error || "Failed to delete user");
+    }
+  } catch (e) {
+    showToast("Network error");
+  }
+}
+
+async function adminDeleteReview(rid) {
+  if (!confirm("Delete this review comment?")) return;
+  const token = localStorage.getItem('accessToken');
+  try {
+    const res = await fetch(`/api/admin/reviews/${rid}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      showToast("Review deleted");
+      renderDashboard();
+    }
+  } catch (e) {
+    showToast("Network error");
+  }
+}
+
+// Helper: Escape HTML strings to prevent XSS injection
+function escapeHtml(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 // ═══════════════ USER AUTHENTICATION ═══════════════
 function toggleAuthMode(mode) {
   const title = document.getElementById('authModalTitle');
   const loginSec = document.getElementById('login-section');
   const regSec = document.getElementById('register-section');
+  const forgotSec = document.getElementById('forgot-section');
+  const resetSec = document.getElementById('reset-section');
+
+  loginSec.style.display = 'none';
+  regSec.style.display = 'none';
+  forgotSec.style.display = 'none';
+  resetSec.style.display = 'none';
+
   if (mode === 'login') {
     title.textContent = 'Login to StayFinder';
     loginSec.style.display = 'block';
-    regSec.style.display = 'none';
-  } else {
+  } else if (mode === 'register') {
     title.textContent = 'Create a StayFinder Account';
-    loginSec.style.display = 'none';
     regSec.style.display = 'block';
+  } else if (mode === 'forgot') {
+    title.textContent = 'Forgot Password';
+    forgotSec.style.display = 'block';
+  } else if (mode === 'reset') {
+    title.textContent = 'Reset Password';
+    resetSec.style.display = 'block';
   }
 }
 
@@ -2463,16 +3631,57 @@ function updateAuthUI(user) {
   const logoutBtn = document.getElementById('nav-logout-btn');
   const greeting = document.getElementById('nav-user-greeting');
   const usernameSpan = document.getElementById('nav-username');
+  const dashboardBtn = document.getElementById('nav-dashboard-btn');
+  const listPropBtn = document.getElementById('nav-list-property-btn');
   if (user) {
     authBtn.style.display = 'none';
     logoutBtn.style.display = 'inline-block';
     greeting.style.display = 'inline-block';
     usernameSpan.textContent = user.name;
+    if (dashboardBtn) dashboardBtn.style.display = 'inline-block';
+    if (listPropBtn) {
+      if (user.role === 'user') {
+        listPropBtn.style.display = 'none';
+      } else {
+        listPropBtn.style.display = 'inline-block';
+      }
+    }
   } else {
     authBtn.style.display = 'inline-block';
     logoutBtn.style.display = 'none';
     greeting.style.display = 'none';
     usernameSpan.textContent = '';
+    if (dashboardBtn) {
+      dashboardBtn.style.display = 'none';
+      dashboardBtn.classList.remove('active');
+    }
+    if (listPropBtn) {
+      listPropBtn.style.display = 'inline-block';
+    }
+  }
+}
+
+async function loadSavedProperties() {
+  const token = localStorage.getItem('accessToken');
+  if (!token) {
+    savedItems.clear();
+    return;
+  }
+  try {
+    const res = await fetch('/api/properties/saved', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      savedItems.clear();
+      data.forEach(p => savedItems.add(p.id));
+      renderListings();
+      if (document.getElementById('view-dashboard') && document.getElementById('view-dashboard').classList.contains('active')) {
+        renderDashboard();
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to fetch saved properties", e);
   }
 }
 
@@ -2480,6 +3689,7 @@ async function checkAuthStatus() {
   const token = localStorage.getItem('accessToken');
   if (!token) {
     updateAuthUI(null);
+    savedItems.clear();
     return;
   }
   try {
@@ -2490,14 +3700,17 @@ async function checkAuthStatus() {
       const user = await res.json();
       updateAuthUI(user);
       console.log("Logged in as:", user.name);
+      await loadSavedProperties();
     } else {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       updateAuthUI(null);
+      savedItems.clear();
     }
   } catch (err) {
     console.error("Auth status check failed", err);
     updateAuthUI(null);
+    savedItems.clear();
   }
 }
 
@@ -2516,6 +3729,7 @@ async function handleLogin(e) {
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
       updateAuthUI(data.user);
+      await loadSavedProperties();
       closeModal('authModal');
       showToast(`Welcome back, ${data.user.name}!`);
       document.getElementById('loginForm').reset();
@@ -2545,6 +3759,7 @@ async function handleRegister(e) {
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
       updateAuthUI(data.user);
+      await loadSavedProperties();
       closeModal('authModal');
       showToast(`Welcome to StayFinder, ${data.user.name}!`);
       document.getElementById('registerForm').reset();
@@ -2553,6 +3768,59 @@ async function handleRegister(e) {
     }
   } catch (err) {
     showToast('Server connection failed');
+  }
+}
+
+async function handleForgotPassword(event) {
+  if (event) event.preventDefault();
+  const email = document.getElementById('forgot-email').value.trim();
+  try {
+    const res = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToast("Reset token generated! Check alerts.");
+      document.getElementById('reset-token').value = data.resetToken || '';
+      toggleAuthMode('reset');
+      alert(`[Demo Mode] A password reset token has been generated: ${data.resetToken}\n\nThe token has been auto-filled for you on the next screen.`);
+    } else {
+      showToast(data.error || "Failed to request password reset");
+    }
+  } catch (err) {
+    showToast("Network error requesting reset");
+  }
+}
+
+async function handleResetPassword(event) {
+  if (event) event.preventDefault();
+  const token = document.getElementById('reset-token').value.trim();
+  const password = document.getElementById('reset-password-input').value;
+  
+  if (password.length < 8) {
+    showToast("Password must be at least 8 characters");
+    return;
+  }
+  
+  try {
+    const res = await fetch('/api/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, password })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToast("Password reset successfully! Please login.");
+      toggleAuthMode('login');
+      document.getElementById('forgotForm').reset();
+      document.getElementById('resetForm').reset();
+    } else {
+      showToast(data.error || "Failed to reset password");
+    }
+  } catch (err) {
+    showToast("Network error resetting password");
   }
 }
 
@@ -2576,13 +3844,48 @@ async function logoutUser() {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
   updateAuthUI(null);
+  savedItems.clear();
+  renderListings();
   showToast('Logged out successfully');
+  if (document.getElementById('view-dashboard') && document.getElementById('view-dashboard').classList.contains('active')) {
+    showView('home');
+  }
+}
+
+function initUserLocation() {
+  if (navigator.geolocation) {
+    console.log("Requesting initial geolocation...");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        userLocationCoords = { lat, lng };
+        filters.userLocation = { lat, lng };
+        
+        const optDist = document.getElementById('optSortDistance');
+        const sortSel = document.getElementById('sortSelect');
+        if (optDist) optDist.style.display = 'block';
+        if (sortSel) {
+          sortSel.value = 'distance-asc';
+        }
+        
+        console.log("Successfully loaded geolocation:", userLocationCoords);
+        renderListings();
+        renderGovt();
+      },
+      (error) => {
+        console.warn("Geolocation permission denied or timed out:", error.message);
+      },
+      { enableHighAccuracy: false, timeout: 6000 }
+    );
+  }
 }
 
 // ═══════════════ INIT ═══════════════
 buildHeroMap();
 fetchLiveDBData();
 checkAuthStatus();
+initUserLocation();
 </script>
 </body>
 </html>

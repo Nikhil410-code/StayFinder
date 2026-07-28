@@ -227,6 +227,18 @@ def seed():
                  rooms=[{"sharing_type":"Single","price":13000,"count":6},
                         {"sharing_type":"Double","price":9000,"count":7},
                         {"sharing_type":"Triple","price":6500,"count":3}]),
+
+            dict(owner_id=owner_ids[0], name="Yelahanka Elite Co-living PG",
+                 type="PG", gender="Co-ed", area="Yelahanka",
+                 address="4th Phase, Yelahanka New Town, Bengaluru", lat=13.0985, lng=77.5950,
+                 description="Modern premium co-living space in Yelahanka New Town. Top floor gym, walking distance to colleges, fully furnished.",
+                 nearby="Reva University (3 km), BMSIT, Yelahanka Junction",
+                 price_min=8000, price_max=15000, deposit=16000,
+                 total_rooms=25, avail_rooms=6,
+                 amenities=["WiFi","AC","Meals","Gym","CCTV","Laundry","Power Backup"],
+                 rooms=[{"sharing_type":"Single","price":15000,"count":5},
+                        {"sharing_type":"Double","price":10500,"count":12},
+                        {"sharing_type":"Triple","price":8000,"count":8}]),
         ]
 
         prop_ids = [upsert_property(p) for p in props]
@@ -256,44 +268,49 @@ def seed():
         # ── Govt Hostels ───────────────────────────────────────────
         govt_data = [
             ("Dr. B.R. Ambedkar SC/ST Boys Hostel", "Dept of Social Welfare, Karnataka",
-             "Chamrajpet", '["SC/ST"]', "Free", None, 120, 15,
+             "Chamrajpet", 12.9609, 77.5640, '["SC/ST"]', "Free", None, 120, 15,
              "080-2226-0001", "https://sw.kar.nic.in",
              "Govt hostel for SC/ST male students in classes 9-10. Includes food, lodging and scholarship."),
 
             ("KSWDC Working Women's Hostel", "Dept of Women & Child Development, Karnataka",
-             "Sadashivanagar", '["Women"]', "Subsidized", "₹500–₹1,500/month", 80, 8,
+             "Sadashivanagar", 13.0068, 77.5813, '["Women"]', "Subsidized", "₹500–₹1,500/month", 80, 8,
              "080-2238-0092", "https://wcd.kar.nic.in",
              "Subsidized hostel for working women earning under ₹50,000/month. Meals and security included."),
 
             ("OBC Pre-Matric Boys Hostel", "Backward Classes Welfare Dept, Karnataka",
-             "Rajajinagar", '["OBC"]', "Free", None, 100, 20,
+             "Rajajinagar", 12.9760, 77.5583, '["OBC"]', "Free", None, 100, 20,
              "080-2334-5500", "https://bcwd.kar.nic.in",
              "Free accommodation for OBC students with meals, study room, and library access."),
 
             ("Minorities Welfare Girls Hostel", "Dept for Minorities, Karnataka",
-             "Shivajinagar", '["Minority","Women"]', "Free", None, 60, 5,
+             "Shivajinagar", 12.9857, 77.5971, '["Minority","Women"]', "Free", None, 60, 5,
              "080-2286-1122", "https://minorities.kar.nic.in",
              "Free hostel for minority community girls pursuing higher education in Bengaluru."),
 
             ("Labour Department Workers Hostel", "Dept of Labour, Karnataka",
-             "Peenya", '["Labour"]', "Subsidized", "₹300/month", 200, 35,
+             "Peenya", 13.0285, 77.5198, '["Labour"]', "Subsidized", "₹300/month", 200, 35,
              "080-2239-7700", "https://labour.kar.nic.in",
              "Heavily subsidized accommodation for registered industrial workers near Peenya."),
 
             ("SC/ST Post-Matric Girls Hostel", "Dept of Social Welfare, Karnataka",
-             "Yeshwantpur", '["SC/ST","Women"]', "Free", None, 90, 10,
+             "Yeshwantpur", 13.0238, 77.5529, '["SC/ST","Women"]', "Free", None, 90, 10,
              "080-2347-1200", "https://sw.kar.nic.in",
              "Free hostel for SC/ST girls enrolled in degree, diploma or ITI courses."),
 
             ("Valmiki Tribal Development Hostel", "Tribal Welfare Dept, Karnataka",
-             "Majestic", '["SC/ST"]', "Free", None, 75, 12,
+             "Majestic", 12.9767, 77.5729, '["SC/ST"]', "Free", None, 75, 12,
              "080-2220-9900", "https://tribal.kar.nic.in",
              "Dedicated hostel for tribal community students with coaching support and career guidance."),
 
             ("BBMP Working Men's Hostel", "BBMP, Bengaluru",
-             "Multiple locations", '["Labour","OBC"]', "Subsidized", "₹800/month", 350, 50,
+             "Multiple locations", 12.9716, 77.5946, '["Labour","OBC"]', "Subsidized", "₹800/month", 350, 50,
              "1800-425-0066", "https://bbmp.gov.in",
              "Municipal hostel across 6 zones. Ideal for migrant workers and daily wage earners."),
+
+            ("Government Post-Matric Girls Hostel - Yelahanka", "Backward Classes Welfare Dept, Karnataka",
+             "Yelahanka", 13.1007, 77.5963, '["Minority","Women"]', "Free", None, 120, 15,
+             "080-2856-1100", "https://bcwd.kar.nic.in",
+             "Government hostel providing free lodging and board for girls pursuing degree courses in Yelahanka."),
         ]
         gc = 0
         for row in govt_data:
@@ -302,9 +319,9 @@ def seed():
             if not existing:
                 conn.execute(
                     """INSERT INTO govt_hostels
-                       (id,name,organisation,area,eligibility,cost_type,cost_amount,
+                       (id,name,organisation,area,lat,lng,eligibility,cost_type,cost_amount,
                         total_seats,avail_seats,contact,apply_url,description)
-                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                     (str(uuid.uuid4()),) + row
                 )
                 gc += 1
