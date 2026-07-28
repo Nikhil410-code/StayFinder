@@ -1715,6 +1715,22 @@ async function getDirections(id, destLat, destLng) {
   );
 }
 
+function openGoogleMapsForProperty(name, address, city, lat, lng) {
+  let destination = '';
+  if (address) {
+    destination = name ? `${name}, ${address}` : address;
+    if (city && !address.toLowerCase().includes(city.toLowerCase())) {
+      destination += `, ${city}`;
+    }
+  } else if (lat && lng) {
+    destination = `${lat},${lng}`;
+  } else {
+    destination = 'Bengaluru';
+  }
+  const url = `https://www.google.com/maps/dir/?api=1&origin=My+Location&destination=${encodeURIComponent(destination)}`;
+  window.open(url, '_blank');
+}
+
 // ═══════════════ FILTERS ═══════════════
 function toggleFilter(btn, group) {
   const val = btn.dataset.val;
@@ -1871,6 +1887,17 @@ const AREA_COORDINATES = {
   'Yelahanka': { lat: 13.1007, lng: 77.5963 }
 };
 
+function getAreaCoordinates(areaName) {
+  if (!areaName) return null;
+  const normalized = areaName.toLowerCase().trim();
+  for (const key of Object.keys(AREA_COORDINATES)) {
+    if (key.toLowerCase() === normalized) {
+      return AREA_COORDINATES[key];
+    }
+  }
+  return null;
+}
+
 // Haversine formula to compute distance in km
 function getDistanceKm(lat1, lon1, lat2, lon2) {
   if (!lat1 || !lon1 || !lat2 || !lon2) return null;
@@ -1907,12 +1934,12 @@ function renderListings() {
   const search = (document.getElementById('searchFilter')?.value || '').toLowerCase();
   
   const refArea = getSelectedRefArea(search);
-  const refCoords = refArea ? AREA_COORDINATES[refArea] : null;
+  const refCoords = getAreaCoordinates(refArea);
 
   if (search) data = data.filter(l => l.name.toLowerCase().includes(search) || l.area.toLowerCase().includes(search));
   if (filters.type !== 'All') data = data.filter(l => l.type === filters.type);
   if (filters.gender !== 'All') data = data.filter(l => l.gender === filters.gender || l.gender === 'Co-ed');
-  if (filters.area !== 'All') data = data.filter(l => l.area === filters.area);
+  if (filters.area !== 'All') data = data.filter(l => (l.area || '').toLowerCase() === filters.area.toLowerCase());
   data = data.filter(l => l.price <= filters.budget);
   if (filters.amenities.length) data = data.filter(l => filters.amenities.every(a => l.amenities.includes(a)));
   
@@ -2096,7 +2123,7 @@ async function showDetail(id) {
     // Calculate distance
     const search = (document.getElementById('searchFilter')?.value || '').toLowerCase();
     const refArea = getSelectedRefArea(search);
-    const refCoords = refArea ? AREA_COORDINATES[refArea] : null;
+    const refCoords = getAreaCoordinates(refArea);
     let distText = '';
     if (refCoords && p.lat && p.lng) {
       const dist = getDistanceKm(p.lat, p.lng, refCoords.lat, refCoords.lng);
@@ -2290,7 +2317,7 @@ async function showDetail(id) {
               <button class="action-btn outline" id="btnGetDirections" onclick="getDirections('${p.id}', ${p.lat}, ${p.lng})" style="padding:8px 12px;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif;">
                 🚗 Get Directions from Live Location
               </button>
-              <button class="action-btn outline" onclick="window.open('https://www.google.com/maps/dir/?api=1&origin=My+Location&destination=${p.lat},${p.lng}', '_blank')" style="padding:8px 12px;font-size:12px;font-weight:600;color:var(--text2);border-color:var(--border);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif;">
+              <button class="action-btn outline" id="btnOpenMaps" style="padding:8px 12px;font-size:12px;font-weight:600;color:var(--text2);border-color:var(--border);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif;">
                 🗺️ Open in Google Maps
               </button>
             </div>
@@ -2301,6 +2328,10 @@ async function showDetail(id) {
         </div>
       </div>`;
     
+    document.getElementById('btnOpenMaps')?.addEventListener('click', () => {
+      openGoogleMapsForProperty(p.name, p.address, p.city, p.lat, p.lng);
+    });
+
     initDetailMap(p.id, p.lat, p.lng, p.name);
 
   } catch (err) {
@@ -2405,7 +2436,7 @@ function renderGovt() {
       </div>
       <div class="govt-card-footer">
         <span class="free-badge">${g.cost}</span>
-        <span class="apply-link" onclick="event.stopPropagation(); handleApply('${g.apply}')">Apply Online →</span>
+        <span class="apply-link" onclick="event.stopPropagation(); openGoogleMapsForProperty(decodeURIComponent('${encodeURIComponent(g.name)}'), decodeURIComponent('${encodeURIComponent(g.address || g.name + ', ' + g.area)}'), '${g.city || 'Bengaluru'}', ${g.lat || 'null'}, ${g.lng || 'null'})">🗺️ Open in Google Maps</span>
       </div>`;
     grid.appendChild(card);
   });
@@ -2638,9 +2669,37 @@ async function submitListing(event) {
     }
   ];
   
-  const areaCoords = AREA_COORDINATES[area] || { lat: 12.9716, lng: 77.5946 };
-  const lat = areaCoords.lat + (Math.random() - 0.5) * 0.01;
-  const lng = areaCoords.lng + (Math.random() - 0.5) * 0.01;
+  const areaCoords = getAreaCoordinates(area) || { lat: 12.9716, lng: 77.5946 };
+  let lat = areaCoords.lat + (Math.random() - 0.5) * 0.01;
+  let lng = areaCoords.lng + (Math.random() - 0.5) * 0.01;
+
+  try {
+    const fullQuery = `${address}, ${area}, Bengaluru`;
+    const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullQuery)}&limit=1`;
+    const geoRes = await fetch(geoUrl, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (geoRes.ok) {
+      const geoData = await geoRes.json();
+      if (geoData && geoData.length > 0) {
+        lat = parseFloat(geoData[0].lat);
+        lng = parseFloat(geoData[0].lon);
+      } else {
+        const areaQuery = `${area}, Bengaluru`;
+        const geoUrl2 = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(areaQuery)}&limit=1`;
+        const geoRes2 = await fetch(geoUrl2);
+        if (geoRes2.ok) {
+          const geoData2 = await geoRes2.json();
+          if (geoData2 && geoData2.length > 0) {
+            lat = parseFloat(geoData2[0].lat);
+            lng = parseFloat(geoData2[0].lon);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Geocoding failed, using fallback coordinates:", err);
+  }
   
   const payload = {
     name,
@@ -2807,6 +2866,8 @@ async function fetchLiveDBData() {
             name: g.name,
             org: g.organisation,
             area: g.area,
+            address: g.address || '',
+            city: g.city || 'Bengaluru',
             eligibility: g.eligibility || [],
             cost: g.cost_amount || g.cost_type,
             seats: g.total_seats,
